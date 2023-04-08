@@ -114,6 +114,7 @@ getRegressionParameters <- function(mlm, dataSet, platform){
                                         "percentageForTrainingSet" = as.numeric(mlmParams[4]), dataSet = dataSet, "platform" = platform, "direction" = mlmParams[5])
 
         return(regressionParameterList)
+
 }
 
 #' plotPrediction
@@ -153,7 +154,6 @@ readConfigFile<-function(configFile){
                 stop("Input parameters validation error: Configuration file format is not supported, json is valid!")
 
         config <-read.config(file = configFile)
-
 
         # checks if the output directory exists
         # Output directory will contain statistics report, pca plots and performance plots
@@ -195,6 +195,7 @@ readConfigFile<-function(configFile){
         config$machineLearningModels <- mlmList
 
         return(config)
+
 }
 
 
@@ -212,37 +213,48 @@ readConfigFile<-function(configFile){
 #' @examples
 #' \dontrun{readConfigFile(configFile)}
 #'
-readDataset<-function(dataFileName){
+
+# Modified by Shintaro Kinoshita : add "metaFileName" argument to "readData" function
+readDataset<-function(dataFileName, metaFileName){
 
         fileExtension <- tolower(file_ext(dataFileName))
 
-        dataSet <- data.frame()
         # According to file extension different method is used to read data
         if(fileExtension == "xlsx")
-                dataSet <- openxlsx::read.xlsx(dataFileName, sheet = 1, startRow = 1, rowNames=TRUE)
+                dataSet <- openxlsx::read.xlsx(dataFileName, sheet = 1, rowNames=TRUE, colNames = TRUE,)
         if(fileExtension == "csv")
-                dataSet<-read.table(dataFileName, sep=",", header=TRUE, row.names=1)
-
-        dataFileName<-"/Users/ozlemkaradeniz/Cranfield/Thesis/data/MSI_beef_air_spoilage_GM_OK.xlsx"
+                dataSet <- as.data.frame(read.csv(dataFileName, sep=",", header=TRUE, row.names=1))
 
         emptyColumns <- colSums(is.na(dataSet) | dataSet == "") == nrow(dataSet)
-        dataSet<-dataSet[, !emptyColumns]
+        dataSet <- dataSet[, !emptyColumns]
 
         dataSet <- na.omit(dataSet)
 
-        colnames(dataSet)<-gsub("\\/", "\\.", colnames(dataSet))
+        colnames(dataSet) <- gsub("X","", colnames(dataSet))
+        #colnames(dataSet)=as.character(colnames(dataSet))
 
-        if(any(!is.na(as.numeric(colnames(dataSet)))))
-                colnames(dataSet)[colnames(dataSet)!="TVC"] <- paste0("a", colnames(dataSet),"")
+        #if(any(!is.na(as.numeric(colnames(dataSet)))))
+        #colnames(dataSet)[colnames(dataSet)!="TVC"] <- paste0("a", colnames(dataSet),"")
 
-         # number of features is reduced by feature selection,
+         # Number of features is reduced by feature selection,
          # import in processing FTIR data
          if(ncol(dataSet) > 200){
                 features<- selectFeatures(dataSet)
-                dataSet<-dataSet[,c(features,"TVC")]
+                dataSet<-dataSet[,c(features,"TVC")] # PCA, CFC, STAA, MRS, Pseudomonas
          }
 
+        # Modified by Shintaro Kinoshita
+        # Combine Dataset and TVC data if not found
+        if( !length( grep( "TVC", names( dataSet ) ) ) > 0 && !is.null(metaFileName) ) {
+                tvcRawData <- read.csv( metaFileName, header = TRUE)
+                metaData   <- data.frame( TVC = tvcRawData$TVC ) #; print( metaData )
+                min_nrow   <- min( nrow( dataSet ), nrow( metaData ) ) #; print( min_nrow )
+                dataSet    <- cbind( dataSet[ 1:min_nrow, ], TVC = metaData[ 1:min_nrow, ] )#; print( dataSet_mod )
+                cat( paste0( "NOTE : NO TVC data found in the original data. the first ", min_nrow, " rows in the metadata were combined to the original dataset." ) )
+        }
+
         return(dataSet)
+
 }
 
 createPerformanceStatistics <- function(performanceResults, regressionParameterList){
@@ -265,7 +277,6 @@ createPerformanceStatistics <- function(performanceResults, regressionParameterL
         if(!is.null(performanceResults[[1]]$bestHyperParams))
                 bestHyperParamsList <- unlist(lapply(performanceResults, function(x) x$bestHyperParams))
 
-
         regressionParameterList$methodWithDataScaling <- paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ")")
 
         cat(paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ") mean RMSE: ", meanRMSE, '\n'))
@@ -286,7 +297,7 @@ createPerformanceStatistics <- function(performanceResults, regressionParameterL
 #' @import Boruta
 #' @return dataFrame
 #'
-#' @examples
+#' @examples new dataset with reduced number of features
 #' \dontrun{selectFeatures(dataSet)}
 
 selectFeatures<-function(dataSet){
@@ -299,6 +310,121 @@ selectFeatures<-function(dataSet){
         boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
 
         return(boruta_signif)
+
 }
 
+#' removeRedundantFeatures
+#' @description reduces the number of features in the dataset by
+#' removing the reduntant during the variable selection process of data modeling.
+#' @author Ozlem Karadeniz \email{ozlem.karadeniz.283@@cranfield.ac.uk}
+#' @param  dataSet  dataFrame object
+#' @import caret corrplot plyr
+#' @return
+#'
+#' @examples new dataset with reduced number of features
+#' \dontrun{removeRedundantFeatures(selectFeatures)}
 
+removeRedundantFeatures<-function(dataSet){
+        # Remove non-informative  features
+        nzv <- caret::nearZeroVar(dataSet, saveMetrics= TRUE)
+        dataSet <- dataSet[, !nzv$nzv]
+
+        # Calculate correlation matrix
+        descrCor <- cor(dataSet)
+
+        # Finds higly correlated features
+        highlyCorrelated <- findCorrelation(descrCor, cutoff=0.7)
+        highlyCorCol <- colnames(dataSet)[highlyCorrelated]
+
+        # Removes highly correlated features
+        dat <- dataSet[, -which(colnames(dataSet) %in% highlyCorCol)]
+
+        return(dat)
+
+}
+
+#' statsRegression
+#' @description calculates basic statistics of a predicted model
+#' by comparing to the observed data.
+#' @author Shintaro Kinoshita \email{shintaro.kinoshita.584@@cranfield.ac.uk}
+#' @param  predicted
+#' @param  observed
+#' @return data frame containing RMSE, Accuracy, Bf, Af and Worst
+#'
+#' @examples
+#' \dontrun{statsRegression(predicted, ovserved)}
+
+statsRegression<-function(predicted, observed){
+        # Check content
+        #cat( "\n######\npredicted\n######\n" )
+        #cat( paste0( predicted, "\n" ) )
+        #cat( "\n######\nobserved\n######\n" )
+        #cat( paste0( observed, "\n\n" ) )
+        # Calculate a dataframe with the parameters of the regression
+        cat( "\n############################################################\n" )
+        cat( "\npredicted:\n" )
+        cat( predicted )
+        cat( "\nobserved:\n" )
+        cat( observed )
+        cat( "\n" )
+
+        diff     <- abs(predicted-observed)
+        Bf       <- 10^(mean(log10(predicted/observed)))                 
+        Af       <- 10^mean(abs(log10(predicted/observed)))              
+        RMSE     <- sqrt(mean((predicted - observed)^2))                 
+        Accuracy <- 100*(length(diff[which(diff<=1)])/length(predicted)) 
+        Worst    <- max(diff)                                            
+
+        cat( "\n\n" )
+        cat( paste0( "Bf       = ", Bf,       "\n") )
+        cat( paste0( "Af       = ", Af,       "\n") )
+        cat( paste0( "RMSE     = ", RMSE,     "\n") )
+        cat( paste0( "Accuracy = ", Accuracy, "\n") )
+        cat( paste0( "Worst    = ", Worst,    "\n") )
+        cat( "\n\n" )
+
+        # Accuracy is the number of samples which are in which |pred-obs|<1 over the total num of samples
+        diff <- abs(predicted-observed)
+        params <- data.frame(
+                Bf = 10^(mean(log10(predicted/observed))),
+                Af = 10^mean(abs(log10(predicted/observed))),
+                RMSE = sqrt(mean((predicted - observed)^2)), # RMSE <- sqrt(mean((predicted - true)^2))
+                Accuracy = 100*(length(diff[which(diff<=1)])/length(predicted)),
+                Worst = max(diff)
+        )
+        cat( "\n############################################################\n" )
+
+        return(round(params, 3))
+
+}
+
+#' saveResult
+#' @description generates 'result.csv' contains the best statistics values in each models
+#' @author Shintaro Kinoshita \email{shintaro.kinoshita.584@@cranfield.ac.uk}
+#' @param  statsReg
+#' @param  outputDir
+#' @return null, generates 'result.csv' contains the best statistics values in each models
+#'
+#' @examples
+#' \dontrun{saveResult(statsReg, outDir)}
+
+saveResult<-function(statsReg, outputDir){
+        # Modify outputDir if required
+        if (substr(outputDir, nchar(outputDir), nchar(outputDir) ) != "/" ) {
+                outputDir <- paste0(outputDir, "/")
+        }
+        # Define content
+        content <- paste0(paste(
+                rownames(statsReg),
+                paste0("RMSE: ", round( statsReg$RMSE, 3)),
+                paste0("Acc: " , round(statsReg$Accuracy, 1), "%"),
+                paste0("Delta: ", round(statsReg$Worst, 2)),
+                paste0("Af: ", round(statsReg$Af, 2)),
+                paste0("Bf: ", round(statsReg$Bf, 2)),
+                sep = " \\\\ "
+        ))
+
+        cat( content )
+
+        write.table(content, file = paste0(outputDir, "result.csv"), append = TRUE, row.names = TRUE, col.names=TRUE, sep=",")
+}

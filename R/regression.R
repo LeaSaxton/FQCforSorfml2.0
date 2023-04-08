@@ -11,17 +11,19 @@
 
 run.analysis <- function(configParams){
         fileList <- configParams$platformList$dataFileName
+        metaList  <- configParams$platformList$metaFileName
         platformList <- configParams$platformList$platformName
         mlmList <- configParams$machineLearningModels
 
         cat("########################\n#### START ANALYSIS ####\n########################\n\n")
 
-        # initialization of platformPerformanceResults
+        # Initialization of platformPerformanceResults
         platformPerformanceResults <- vector(mode="list", length = length(platformList))
 
        # platformPerformanceResults <- foreach(i=seq(1:length(platformList))) %dopar% {
         for(i in 1:length(platformList)) {
-                dataSet = readDataset(fileList[i])
+                # Modified by Shintaro Kinoshita : add metaList[i] argument to readDataset
+                dataSet = readDataset(fileList[i], metaList[i])
                 bestRMSE <- 100000
                 bestRSquare<-0
                 bestMLM<-""
@@ -31,7 +33,7 @@ run.analysis <- function(configParams){
 
                 mlmPerformanceResults <- vector(mode="list", length = length(mlmList))
 
-                # for each platforms and machine learning models following code is executed
+                # For each platforms and machine learning models following code is executed
                 for(j in 1:length(mlmList)) {
                         mlm <-mlmList[j]
 
@@ -41,6 +43,10 @@ run.analysis <- function(configParams){
                         # default values are defined in utils.R
                         regressionParameterList <- getRegressionParameters(mlm,dataSet, platformList[i] )
                         dataSet<-regressionParameterList$dataSet
+
+                        # Modified by Shintaro Kinoshita : Add configParams$outputDirectory to regressionParameterList
+                        regressionParameterList$outputDir <- configParams$outputDirectory
+                        #cat( str( regressionParameterList ) )
 
                         # according to method parameter of regressionParameterList different machine learning model is executed in  run.regression
                         # mlmPerformanceResult <- tryCatch(
@@ -54,7 +60,6 @@ run.analysis <- function(configParams){
                         #                         return(NULL)
                         #                 }
                         #         )
-
 
                         mlmPerformanceResult <- run.regression(regressionParameterList)
                         if(is.null(mlmPerformanceResult)){
@@ -74,8 +79,8 @@ run.analysis <- function(configParams){
                              bestRMSE <- mlmPerformanceResult$RMSE
                              bestMLM <- mlmPerformanceResult$method
                         }
-                        # machine learning model list updated
-                        # each platform has got different mlmPerformanceResults list
+                        # Machine learning model list updated
+                        # Each platform has got different mlmPerformanceResults list
                         mlmPerformanceResults[[j]]  <- mlmPerformanceResult
                 }
 
@@ -83,7 +88,7 @@ run.analysis <- function(configParams){
                 # Best machine learning model for the platform is printed
                 cat("For ", platformList[i], " best model is ", bestMLM , " with RMSE: " , bestRMSE,  " and R-squared: ", bestRSquare, "\n")
 
-                # each item in platformPerformanceResults corresponds to one platform,
+                # Each item in platformPerformanceResults corresponds to one platform,
                 # Associated mlmPerformanceResults(performance results of machine learning model list), bestMLM, bestRMSE, bestRSquare which have been
                 # created with the previous loop are appended to platformPerformanceResults list.
                 platformPerformanceResults[[i]] <- list("platform" = platformList[i], "bestMLM" = bestMLM, "bestRMSE" = bestRMSE, "bestRSquare" = bestRSquare,
@@ -97,7 +102,6 @@ run.analysis <- function(configParams){
         # Performance plots which shows RSquare and  RMSE means through number of iterations are created for each platform
         if(configParams$createPerformancePlots)
                 generatePerformancePlots(platformPerformanceResults, configParams$outputDirectory)
-
 
 }
 
@@ -159,7 +163,7 @@ run.regression <- function(regressionParameterList){
                 result<-linearRegression.run(regressionParameterList)
 
         }
-        #regularized regression models() Ridge Regression, Lasso Regression)
+        # Regularized regression models() Ridge Regression, Lasso Regression
         if(method == "RR" || method == "LR" ){
                 cat('regularizedRegression.run is starting \n')
                 result<-regularizedRegression.run(regressionParameterList)
@@ -171,7 +175,7 @@ run.regression <- function(regressionParameterList){
                 result<-elasticRegression.run(regressionParameterList)
         }
 
-        # Elastic Net Regression
+        # XGBoost
         if(method == "XGBoost" ){
                 cat('XGBoost.run is starting \n')
                 result<-XGBoost.run(regressionParameterList)
@@ -207,9 +211,10 @@ assess.quality <- function(configFile=configFile){
         configParams = readConfigFile(configFile)
 
         # in run.analysis foreach method is called as parallel
-        #registerDoParallel(cores=4)
+        # registerDoParallel(cores=4)
 
         run.analysis(configParams)
+
 }
 
 

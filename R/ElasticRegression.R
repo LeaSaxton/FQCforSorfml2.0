@@ -36,59 +36,101 @@ elasticRegression.run <- function(regressionParameterList){
         dataSet <- regressionParameterList$dataSet
 
         set.seed(1821)
-        # Partition data into training and test set
+
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,
                                               list = FALSE, times = regressionParameterList$numberOfIterations)
 
         performanceResults <- vector(mode="list", length = regressionParameterList$numberOfIterations)
+
+        # Modified by Shintaro Kinoshita : List of models for RDS
+        #all_models <- list()
+
+        # Modified by Lea Saxton : Define variants for the best models
+        bestRMSE  <- Inf
+        bestModel <- NULL
+
+        # Modified by Shintaro Kinoshita : Define the statistics regression list
+        statsReg <- NULL
 
         for(i in 1:regressionParameterList$numberOfIterations) {
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 testSet <- dataSet[-trainIndexList[,i],]
 
-                dummies <- dummyVars(TVC ~ ., data = dataSet)
-                trainDummies = predict(dummies, newdata = trainSet)
-                testDummies = predict(dummies, newdata = testSet)
+                # Before training resampling method is set as 5 fold cross validation
+                trControl <- trainControl(method = "cv", number = 5)
 
-                trainMx = as.matrix(trainDummies)
-                trainTarget = trainSet$TVC
+                # model is trained with trainSet using 5 fold cross validation
+                # as tuneGrid parameter possible k values is supplied,  train function finds the optimum k-value.
+                modelFit <- caret::train(TVC ~ . , method='knn', data=trainSet,
+                                         tuneGrid=expand.grid(k=1:maxK), trControl=trControl)
 
-                testMx = as.matrix(testDummies)
-                testTarget = testSet$TVC
+                # Using testSet knn model predicts TVC values
+                predictedValues <- predict(modelFit, testSet)
 
-                # Set training control
-                # 10 fold cross validation is defined
-                trainCont <- trainControl(method = "repeatedcv",
-                                          number = 10,
-                                          repeats = 1,
-                                          search = "random",
-                                          verboseIter = TRUE)
-
-
-                # Train the model
-                modelFit <- caret::train(TVC ~ . , data=trainSet,
-                                         method = "glmnet",
-                                         tuneLength = 10,
-                                         trControl = trainCont)
-
-                modelFit <- glmnet(trainMx, trainTarget, alpha = modelFit$bestTune$alpha, lambda = modelFit$bestTune$lambda)
-
-                # list of bestHyperParams is created with best hyperparameters
-                bestHyperParams <- list(alpha=modelFit$bestTune$alpha,lambda=modelFit$bestTune$lambda)
-
-                # Using testSet the model predicts TVC values
-                predictedValues <- predict(modelFit,  newx = testMx)
+                #cat( paste0( "\n\ntestSet     :", str( testSet ), "\n" ) )
+                #cat( paste0( "testSet$TVC : ", str( testSet$TVC ), "\n" ) )
+                #cat( paste0( "is.null(testSet$TVC) : ", is.null( testSet$TVC ), "\n\n" ) )
 
                 # Performance metrics (RMSE and RSquare) are calculated by comparing the predicted and actual values
                 RMSE<- RMSE(testSet$TVC, predictedValues)
                 RSquare <- RSQUARE(testSet$TVC, predictedValues)
 
-                performanceResults[[i]] <- list("RMSE" = RMSE, "RSquare" = RSquare, "bestHyperParams" = bestHyperParams)
+                # Check if this model has the best RMSE so far
+                if (RMSE < bestRMSE) {
+                        bestRMSE  <- RMSE
+                        bestModel <- modelFit
+                        bestHyperParams <- list("k"=modelFit$bestTune[1,1])
+                        statsReg <- statsRegression( predictedValues, testSet$TVC )
+                }
 
+                # Modified by Shintaro Kinoshita : append model to the list
+                #modelFit$call$formula <- as.character(modelFit$call$formula)
+                #all_models[[i]] <- modelFit
+
+                performanceResults[[i]] <- list( "RMSE" = RMSE, "RSquare" = RSquare)
         }
 
-        return (createPerformanceStatistics(performanceResults, regressionParameterList))
+        # Modified by Shintaro Kinoshita : Make "temp" dir to save RDS files
+        name_path <- regressionParameterList$outputDir
+        if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
+                name_path <- paste0( name_path, "temp" )
+        } else {
+                name_path <- paste0( name_path, "/temp" )
+        }
+        #cat( paste0( name_path, "\n" ) )
+
+        # Modified by Shintaro kinoshita : check if the "temp" file exists, if not, create
+        if ( dir.exists( name_path ) == FALSE ) {
+                cat( "\n\nNOTE : The dir 'temp' does not exist so it was newly created.\n" )
+                dir.create( name_path, showWarnings = FALSE )
+        }
+
+        # Modified by Lea Saxton : Save the best model and its hyperparameters
+        name_platform <- regressionParameterList$platform
+        name_model    <- regressionParameterList$method
+        name_file     <- paste0( name_platform, "_", name_model, ".rds" )
+        name_path_rds <- paste0( name_path, "/", name_file )
+        #saveRDS( bestModel, file = name_file )
+        saveRDS( bestModel, file = name_path_rds )
+
+        # Modified by Lea Saxton : Save the associated RMSE in a file
+        name_file     <- paste0( name_platform, "_", name_model, ".txt" )
+        name_path_txt <- paste0( name_path, "/", name_file )
+        #write.table( bestRMSE, file = name_file, row.names = FALSE, col.names = FALSE )
+        write.table( bestRMSE, file = name_path_txt, row.names = FALSE, col.names = FALSE )
+
+        # Modified by Shintaro Kinoshita : create RDS file
+        #name_platform <- regressionParameterList$platform
+        #name_model    <- regressionParameterList$method
+        #name_file     <- paste0( name_platform, "_", name_model, ".rds" )
+        #name_path     <- paste0( "machineLearning/models/", name_file )
+        #saveRDS( all_models, file = name_path )
+        #saveRDS( all_models, file = name_file )
+
+        # Modified by Shinaro Kinoshita : Add statistics values into result.csv
+        saveResult(statsReg, regressionParameterList$outputDir)
+
+        return(createPerformanceStatistics(performanceResults, regressionParameterList))
 
 }
-

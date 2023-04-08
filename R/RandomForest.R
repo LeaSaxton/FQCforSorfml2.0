@@ -24,12 +24,19 @@
 #'
 #' @examples
 #' \dontrun{randomForest.run(regressionParameterList)}
-
+#dataset <- "/Users/shintarokinoshita/Desktop/FQC/FQC/input/config_air_test.js"
 randomForest.run <- function(regressionParameterList){
         cat('randomForest.run \n')
-        cat(regressionParameterList$pretreatment, '\n')
+        cat(regressionParameterList$pretreatment, '\n') # ;cat( str( regressionParameterList ) )
 
-        preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
+        # Modified by Shintaro Kinohita : 
+        dataSet_removed <- regressionParameterList$dataSet
+        dataSet_TVC     <- data.frame( TVC = dataSet_removed$TVC ) # ;cat( str( dataSet_removed ) )
+        dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ] # ;cat( str( dataSet_TVC ) )
+
+        preProcValues <- preProcess(dataSet_removed, method = gePretreatmentVector(regressionParameterList$pretreatment))
+        #preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
+        dataSet <- cbind(dataSet_removed, dataSet_TVC) # ;cat( str( dataSet ) )
         regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
         dataSet <- regressionParameterList$dataSet
 
@@ -39,6 +46,16 @@ randomForest.run <- function(regressionParameterList){
         # Partition data into training and test set
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,
                                               list = FALSE, times = regressionParameterList$numberOfIterations)
+
+        # Modified by Shintaro Kinoshita : List of models for RDS
+        #all_models <- list()
+
+        # Modified by Lea Saxton : Define variants for the best models
+        bestRMSE  <- Inf
+        bestModel <- NULL
+
+        # Modified by Shintaro Kinoshita : Define the statistics regression list
+        statsReg <- NULL
 
         for(i in 1:regressionParameterList$numberOfIterations) {
                 # training set and test set are created
@@ -56,21 +73,71 @@ randomForest.run <- function(regressionParameterList){
                 # list of bestHyperParams is created with best hyperparameters
                 bestHyperParams <- list("mtry"=tuningResult$mtry,"ntree"=tuningResult$ntree)
 
-                # RandomForest model is created with the best hyperparameters for the current iteration
-                modelFit <- randomForest(x = trainSet_x, y = trainSet_y, xtest = testSet_x, ytest = testSet_y,
-                                         ntree = bestHyperParams$ntree, mtry = bestHyperParams$mtry)
+                # RandomForest model is created with the best hyperparameters for the current iterations
+                modelFit <- randomForest( x = trainSet_x, y = trainSet_y, xtest = testSet_x, ytest = testSet_y,
+                                          ntree = bestHyperParams$ntree, mtry = bestHyperParams$mtry, keep.forest = TRUE)
 
                 # Using testSet svm model predicts TVC values
                 predictedValues <- modelFit$test$predicted
 
                 # Performance metrics (RMSE and RSquare) are calculated by comparing the predicted and actual values
-                RMSE<- RMSE(testSet$TVC, predictedValues)
+                RMSE <- RMSE(testSet$TVC, predictedValues)
                 RSquare <- RSQUARE(testSet$TVC, predictedValues)
+
+                # Check if this model has the best RMSE so far
+                if (RMSE < bestRMSE) {
+                        bestRMSE  <- RMSE
+                        bestModel <- modelFit
+                        bestHyperParams <- list("k"=modelFit$bestTune[1,1])
+                        statsReg <- statsRegression( predictedValues, testSet$TVC )
+                }
 
                 performanceResults[[i]] <- list("RMSE" = RMSE, "RSquare" = RSquare, "bestHyperParams" = bestHyperParams)
 
-
+                # Modified by Shintaro Kinoshita : Append model to the list
+                #modelFit$call$formula <- as.character(modelFit$call$formula)
+                #all_models[[i]] <- modelFit
         }
+
+        # Modified by Shintaro Kinoshita : Make "temp" dir to save RDS files
+        name_path <- regressionParameterList$outputDir
+        if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
+                name_path <- paste0( name_path, "temp" )
+        } else {
+                name_path <- paste0( name_path, "/temp" )
+        }
+        #cat( paste0( name_path, "\n" ) )
+
+        # Modified by Shintaro kinoshita : check if the "temp" file exists, if not, create
+        if ( dir.exists( name_path ) == FALSE ) {
+                cat( "\n\nNOTE : The dir 'temp' does not exist so it was newly created.\n" )
+                dir.create( name_path, showWarnings = FALSE )
+        }
+
+        # Modified by Lea Saxton : Save the best model and its hyperparameters
+        name_platform <- regressionParameterList$platform
+        name_model    <- regressionParameterList$method
+        name_file     <- paste0( name_platform, "_", name_model, ".rds" )
+        name_path_rds <- paste0( name_path, "/", name_file )
+        #saveRDS( bestModel, file = name_file )
+        saveRDS( bestModel, file = name_path_rds )
+
+        # Modified by Lea Saxton : Save the associated RMSE in a file
+        name_file     <- paste0( name_platform, "_", name_model, ".txt" )
+        name_path_txt <- paste0( name_path, "/", name_file )
+        #write.table( bestRMSE, file = name_file, row.names = FALSE, col.names = FALSE )
+        write.table( bestRMSE, file = name_path_txt, row.names = FALSE, col.names = FALSE )
+
+        # Modified by Shintaro Kinoshita : Make model file in RDS format.
+        #name_platform <- regressionParameterList$platform
+        #name_model    <- regressionParameterList$method
+        #name_file     <- paste0( name_platform, "_", name_model, ".rds" )
+        #name_path     <- paste0( "./machineLearning/models/", name_file )
+        #saveRDS( all_models, file = name_path )
+        #saveRDS( all_models, file = name_file )
+
+        # Modified by Shinaro Kinoshita : Add statistics values into result.csv
+        saveResult(statsReg, regressionParameterList$outputDir)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList ))
 }

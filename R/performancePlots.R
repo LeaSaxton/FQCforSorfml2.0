@@ -12,8 +12,14 @@
 
 generatePerformancePlot <- function(data, plotName, dataNames, file) {
 
-        # generate different colors for every data entry
+        # Modified by Shintaro Kinoshita : Preview of the dataset
+        cat( "str( data )\n" );      str( data )
+        cat( "str( dataNames )\n" ); str( dataNames )
+        cat( "cat( file )\n" );      cat( file )
+        cat( "cat( plotName )\n" );  cat( plotName )
+        cat( "\n" )
 
+        # generate different colors for every data entry
         colors <- primary.colors(nrow(data) + 1, steps = 3, no.white = TRUE)
 
         # create pdf file

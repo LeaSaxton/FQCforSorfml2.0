@@ -44,6 +44,13 @@ XGBoost.run <- function(regressionParameterList){
         #defining a watchlist
         watchlist = list(train=xgb_train, test=xgb_test)
 
+        # Modified by Shintaro Kinoshita : List of models for RDS
+        #all_models <- list()
+
+        # Modified by Lea Saxton : Define variants for the best models
+        #bestRMSE  <- Inf
+        #bestModel <- NULL
+
         #fit XGBoost model and display training and testing data at each iteration
         model = xgb.train(data = xgb_train, max.depth = 3, watchlist=watchlist, nrounds = 100)
 
@@ -60,9 +67,53 @@ XGBoost.run <- function(regressionParameterList){
         modelRMSE <- round(modelRMSE, 4)
         modelRSquare <- RSQUARE(test_y, pred_y)
         modelRSquare <- round(modelRSquare, 4)
+        statsReg <- statsRegression( pred_y, test_y )
 
         result <- list("RMSE" = modelRMSE, "RSquare" = modelRSquare, method = regressionParameterList$method, platform = regressionParameterList$platform,
                        "pretreatment" = regressionParameterList$pretreatment)
+
+        # Modified by Shintaro Kinoshita : append model to the list
+        #all_models[[0]] <- model
+
+        # Modified by Shintaro Kinoshita : Make "temp" dir to save RDS files
+        name_path <- regressionParameterList$outputDir
+        if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
+                name_path <- paste0( name_path, "temp" )
+        } else {
+                name_path <- paste0( name_path, "/temp" )
+        }
+        #cat( paste0( name_path, "\n" ) )
+
+        # Modified by Shintaro kinoshita : check if the "temp" file exists, if not, create
+        if ( dir.exists( name_path ) == FALSE ) {
+                cat( "\n\nNOTE : The dir 'temp' does not exist so it was newly created.\n" )
+                dir.create( name_path, showWarnings = FALSE )
+        }
+
+        # Modified by Lea Saxton : Save the best model and its hyperparameters
+        name_platform <- regressionParameterList$platform
+        name_model    <- regressionParameterList$method
+        name_file     <- paste0( name_platform, "_", name_model, ".rds" )
+        name_path_rds <- paste0( name_path, "/", name_file )
+        #saveRDS( bestModel, file = name_file )
+        saveRDS( model_xgboost, file = name_path_rds )
+
+        # Modified by Lea Saxton : Save the associated RMSE in a file
+        name_file     <- paste0( name_platform, "_", name_model, ".txt" )
+        name_path_txt <- paste0( name_path, "/", name_file )
+        #write.table( modelRMSE, file = name_file, row.names = FALSE, col.names = FALSE )
+        write.table( modelRMSE, file = name_path_txt, row.names = FALSE, col.names = FALSE )
+
+        # Modified by Shintaro Kinoshita : create RDS file
+        #name_platform <- regressionParameterList$platform
+        #name_model    <- regressionParameterList$method
+        #name_file     <- paste0( name_platform, "_", name_model, ".rds" )
+        #name_path     <- paste0( "machineLearning/models/", name_file )
+        #saveRDS( all_models, file = name_path )
+        #saveRDS( all_models, file = name_file )
+
+        # Modified by Shinaro Kinoshita : Add statistics values into result.csv
+        saveResult(statsReg, regressionParameterList$outputDir)
 
         return (result)
 }

@@ -28,8 +28,8 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
         mlmLongDescList <- unlist(mlmLongDesc[mlmShortNameList])
         methodNameWithDataPretreatment <- paste0(mlmLongDescList , "(", pretreatmentList , ")")
         platformList <- unlist(lapply(platformPerformanceResults, function(x) x$platform))
-        Rmsedf<-data.frame(mlmShortNameList)
-        RSquaredf<-data.frame()
+        Rmsedf <- data.frame(mlmShortNameList)
+        RSquaredf <- data.frame()
 
         for(platformPerformanceResult in platformPerformanceResults){
 
@@ -51,6 +51,8 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
         cat("\n\nRMSE FOR ML METHODS\n\n")
         Rmsedf<- as.data.frame(Rmsedf)
         rownames(Rmsedf) <- methodNameWithDataPretreatment
+        #cat( Rmsedf )
+        #cat( rownames( Rmsedf ) )
         colnames(Rmsedf) <- c("methodName", platformList)
 
         Rmsedf$ML_Means <- round(rowMeans(Rmsedf[2:ncol(Rmsedf)], na.rm=TRUE),4)
@@ -92,7 +94,7 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
                 write.csv(RSquaredf, file = RSquareFile)
         }
 
-        if(nrow(Rmsedf_ForHeatMap) > 1 && ncol(Rmsedf_ForHeatMap) > 1){
+        if( !is.null(nrow(Rmsedf_ForHeatMap)) && !is.null(ncol(Rmsedf_ForHeatMap) ) ){
                 # Plot best prediction method for each technique and medium according to rmse
                 pdf(paste0(outputDir, "/Heatmap_ML_methods.pdf"))
                 par(c(5.1,4.1,4.1,2.1))
