@@ -214,8 +214,8 @@ readConfigFile<-function(configFile){
 #' \dontrun{readConfigFile(configFile)}
 #'
 
-# Modified by Shintaro Kinoshita : add "metaFileName" argument to "readData" function
-readDataset<-function(dataFileName, metaFileName){
+# Modified by Shintaro Kinoshita : add "metaFileName" and "bacterialName" arguments to "readData" function
+readDataset<-function(dataFileName, metaFileName, bacterialName){
 
         fileExtension <- tolower(file_ext(dataFileName))
 
@@ -243,15 +243,28 @@ readDataset<-function(dataFileName, metaFileName){
                 dataSet<-dataSet[,c(features,"TVC")] # PCA, CFC, STAA, MRS, Pseudomonas
          }
 
-        # Modified by Shintaro Kinoshita
-        # Combine Dataset and TVC data if not found
-        if( !length( grep( "TVC", names( dataSet ) ) ) > 0 && !is.null(metaFileName) ) {
-                tvcRawData <- read.csv( metaFileName, header = TRUE)
-                metaData   <- data.frame( TVC = tvcRawData$TVC ) #; print( metaData )
-                min_nrow   <- min( nrow( dataSet ), nrow( metaData ) ) #; print( min_nrow )
-                dataSet    <- cbind( dataSet[ 1:min_nrow, ], TVC = metaData[ 1:min_nrow, ] )#; print( dataSet_mod )
-                cat( paste0( "NOTE : NO TVC data found in the original data. the first ", min_nrow, " rows in the metadata were combined to the original dataset." ) )
+        # Modified by Shintaro Kinoshita : Read metadata
+        rawMetaData <- read.csv( metaFileName, header = TRUE )
+
+        # Modified by Shintaro Kinoshita : Check if the metadata contains the data named 'bacterialName'
+        cat( paste0( "\nbacterialName : ", bacterialName, "\n" ) )
+        if ( !any( names( rawMetaData ) == bacterialName ) ) {
+                cat( "WARNING : ", "The data column named '", bacterialName, "' was not found in the metadata." )
+                cat( "\nCheck the metadata content again.\n" )
+                cat( paste0( "'", names( rawMetaData )[ length( rawMetaData ) ], "' in the metadata are used instead. \n\n" ) )
+                bacterialName <- names( rawMetaData )[ length( rawMetaData ) ]
         }
+
+        # Modified by Shintaro Kinoshita : Combine Dataset and TVC data if not found
+        if( !length( grep( bacterialName, names( dataSet ) ) ) > 0 && !is.null( metaFileName ) ) {
+                metaData    <- data.frame( TVC = rawMetaData[ , bacterialName ] ) #; print( metaData )
+                min_nrow    <- min( nrow( dataSet ), nrow( metaData ) ) #; print( min_nrow )
+                dataSet     <- cbind( dataSet[ 1:min_nrow, ], TVC = metaData[ 1:min_nrow, ] )#; print( dataSet_mod )
+                cat( paste0( "NOTE : NO '", bacterialName, "' data found in the original data. the first ", min_nrow, " rows in the metadata were combined to the original dataset." ) )
+        }
+
+        cat( "\n" )
+        print( dataSet )
 
         return(dataSet)
 
@@ -356,43 +369,38 @@ removeRedundantFeatures<-function(dataSet){
 
 statsRegression<-function(predicted, observed){
         # Check content
-        #cat( "\n######\npredicted\n######\n" )
-        #cat( paste0( predicted, "\n" ) )
-        #cat( "\n######\nobserved\n######\n" )
-        #cat( paste0( observed, "\n\n" ) )
-        # Calculate a dataframe with the parameters of the regression
-        cat( "\n############################################################\n" )
-        cat( "\npredicted:\n" )
-        cat( predicted )
-        cat( "\nobserved:\n" )
-        cat( observed )
-        cat( "\n" )
+        #cat( "\n############################################################\n" )
+        #cat( "\npredicted:\n" )
+        #cat( predicted )
+        #cat( "\nobserved:\n" )
+        #cat( observed )
+        #cat( "\n" )
 
-        diff     <- abs(predicted-observed)
-        Bf       <- 10^(mean(log10(predicted/observed)))                 
-        Af       <- 10^mean(abs(log10(predicted/observed)))              
-        RMSE     <- sqrt(mean((predicted - observed)^2))                 
-        Accuracy <- 100*(length(diff[which(diff<=1)])/length(predicted)) 
-        Worst    <- max(diff)                                            
+        #diff     <- abs(predicted-observed)
+        #Bf       <- 10^(mean(log10(predicted/observed)))
+        #Af       <- 10^mean(abs(log10(predicted/observed)))
+        #RMSE     <- sqrt(mean((predicted - observed)^2))
+        #Accuracy <- 100*(length(diff[which(diff<=1)])/length(predicted))
+        #Worst    <- max(diff)
 
-        cat( "\n\n" )
-        cat( paste0( "Bf       = ", Bf,       "\n") )
-        cat( paste0( "Af       = ", Af,       "\n") )
-        cat( paste0( "RMSE     = ", RMSE,     "\n") )
-        cat( paste0( "Accuracy = ", Accuracy, "\n") )
-        cat( paste0( "Worst    = ", Worst,    "\n") )
-        cat( "\n\n" )
+        #cat( "\n\n" )
+        #cat( paste0( "Bf       = ", Bf,       "\n") )
+        #cat( paste0( "Af       = ", Af,       "\n") )
+        #cat( paste0( "RMSE     = ", RMSE,     "\n") )
+        #cat( paste0( "Accuracy = ", Accuracy, "\n") )
+        #cat( paste0( "Worst    = ", Worst,    "\n") )
+        #cat( "\n\n" )
 
         # Accuracy is the number of samples which are in which |pred-obs|<1 over the total num of samples
         diff <- abs(predicted-observed)
         params <- data.frame(
                 Bf = 10^(mean(log10(predicted/observed))),
                 Af = 10^mean(abs(log10(predicted/observed))),
-                RMSE = sqrt(mean((predicted - observed)^2)), # RMSE <- sqrt(mean((predicted - true)^2))
+                RMSE = sqrt(mean((predicted - observed)^2)),
                 Accuracy = 100*(length(diff[which(diff<=1)])/length(predicted)),
                 Worst = max(diff)
         )
-        cat( "\n############################################################\n" )
+        #cat( "\n############################################################\n" )
 
         return(round(params, 3))
 
@@ -424,7 +432,7 @@ saveResult<-function(statsReg, outputDir){
                 sep = " \\\\ "
         ))
 
-        cat( content )
+        #cat( content )
 
         write.table(content, file = paste0(outputDir, "result.csv"), append = TRUE, row.names = TRUE, col.names=TRUE, sep=",")
 }

@@ -12,6 +12,7 @@
 run.analysis <- function(configParams){
         fileList <- configParams$platformList$dataFileName
         metaList  <- configParams$platformList$metaFileName
+        bacterialNameList <- configParams$platformList$bacterialName
         platformList <- configParams$platformList$platformName
         mlmList <- configParams$machineLearningModels
 
@@ -22,8 +23,8 @@ run.analysis <- function(configParams){
 
        # platformPerformanceResults <- foreach(i=seq(1:length(platformList))) %dopar% {
         for(i in 1:length(platformList)) {
-                # Modified by Shintaro Kinoshita : add metaList[i] argument to readDataset
-                dataSet = readDataset(fileList[i], metaList[i])
+                # Modified by Shintaro Kinoshita : add metaList[i] and bacterialNameList[i] arguments to readDataset
+                dataSet = readDataset(fileList[i], metaList[i], bacterialNameList[i])
                 bestRMSE <- 100000
                 bestRSquare<-0
                 bestMLM<-""
