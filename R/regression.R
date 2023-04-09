@@ -23,7 +23,8 @@ run.analysis <- function(configParams){
 
        # platformPerformanceResults <- foreach(i=seq(1:length(platformList))) %dopar% {
         for(i in 1:length(platformList)) {
-                # Modified by Shintaro Kinoshita : add metaList[i] and bacterialNameList[i] arguments to readDataset
+                # Modified by Shintaro Kinoshita : add metaList[i] and bacterialNameList[i]
+                # arguments to readDataset function
                 dataSet = readDataset(fileList[i], metaList[i], bacterialNameList[i])
                 bestRMSE <- 100000
                 bestRSquare<-0

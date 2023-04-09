@@ -263,8 +263,8 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
                 cat( paste0( "NOTE : NO '", bacterialName, "' data found in the original data. the first ", min_nrow, " rows in the metadata were combined to the original dataset." ) )
         }
 
-        cat( "\n" )
-        print( dataSet )
+        #cat( "\n" )
+        #print( dataSet )
 
         return(dataSet)
 
