@@ -62,7 +62,7 @@ Then to install this local source package type the following in R:
 
 ```{r}
 library(utils)
-install.packages("FoodQualityController_1.0.0.tar.gz", repos = NULL, type = "source", dependencies=TRUE)
+install.packages("FQCforSorfml", repos = NULL, type = "source", dependencies=TRUE)
 ```
 
 # Quick Start
