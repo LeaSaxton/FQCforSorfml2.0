@@ -129,7 +129,7 @@ pls.pcr.run<- function(regressionParameterList){
         #saveRDS( all_models, file = name_file )
 
         # Modified by Shinaro Kinoshita : Add statistics values into result.csv
-        saveResult(statsReg, regressionParameterList$outputDir)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }

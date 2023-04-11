@@ -29,6 +29,8 @@
 knn.run <- function(regressionParameterList){
         cat('knn.run \n')
 
+        print( regressionParameterList )
+
         dataSet_removed <- regressionParameterList$dataSet
         dataSet_TVC     <- data.frame( TVC = dataSet_removed$TVC )
         dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ]
@@ -138,7 +140,7 @@ knn.run <- function(regressionParameterList){
         #saveRDS( all_models, file = name_file )
 
         # Modified by Shinaro Kinoshita : Add statistics values into result.csv
-        saveResult(statsReg, regressionParameterList$outputDir)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }

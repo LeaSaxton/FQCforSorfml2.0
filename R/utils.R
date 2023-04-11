@@ -420,23 +420,38 @@ statsRegression<-function(predicted, observed){
 #' @examples
 #' \dontrun{saveResult(statsReg, outDir)}
 
-saveResult<-function(statsReg, outputDir){
-        # Modify outputDir if required
+saveResult<-function(statsReg, method, outputDir){
+        # make a data frame which is added to 'result.csv'
+        df <- data.frame( method = method,
+                          RMSE   = statsReg$RMSE,
+                          Acc    = statsReg$Accuracy,
+                          Delta  = statsReg$Worst,
+                          Af     = statsReg$Af,
+                          Bf     = statsReg$Bf )
+
+        #print( df )
+
+        # Define filepath : Modify outputDir if required
+        filepath <- NULL
         if (substr(outputDir, nchar(outputDir), nchar(outputDir) ) != "/" ) {
                 outputDir <- paste0(outputDir, "/")
+                filepath  <- paste0(outputDir, "result.csv")
+        } else {
+                filepath  <- paste0(outputDir, "result.csv")
         }
-        # Define content
-        content <- paste0(paste(
-                rownames(statsReg),
-                paste0("RMSE: ", round( statsReg$RMSE, 3)),
-                paste0("Acc: " , round(statsReg$Accuracy, 1), "%"),
-                paste0("Delta: ", round(statsReg$Worst, 2)),
-                paste0("Af: ", round(statsReg$Af, 2)),
-                paste0("Bf: ", round(statsReg$Bf, 2)),
-                sep = " \\\\ "
-        ))
 
-        #cat( content )
+        # Create 'result.csv'
+        if ( !file.exists( filepath ) ) {
+                # If 'result.csv' does not exist, newly create
+                cat( "\nNOTE : 'result.csv' does not exist so it's newly created.\n" )
+                write.table( df, file = filepath, quote = FALSE, row.names = FALSE, col.names = TRUE, sep = "," )
+        } else {
+                # If 'result.csv' exists, add 'df' into 'result.csv'.
+                filedata <- read.table( filepath, header = TRUE, sep = "," ) # Get current 'result.csv' data
+                filedata <- as.data.frame( filedata ) # Change it into a data frame.
+                newdata  <- rbind( filedata, df ) # Bind 'df' with current 'result.csv' data
+                # Then, update 'result.csv' containing 'df' now!
+                write.table( newdata, file = filepath, append = FALSE, quote = FALSE, row.names = FALSE, col.names = TRUE, sep = "," )
+        }
 
-        write.table(content, file = paste0(outputDir, "result.csv"), append = TRUE, row.names = TRUE, col.names = TRUE, sep = "," )
 }
