@@ -368,6 +368,10 @@ removeRedundantFeatures<-function(dataSet){
 #' \dontrun{statsRegression(predicted, ovserved)}
 
 statsRegression<-function(predicted, observed){
+        # Make varilables absolute
+        predicted <- abs( predicted )
+        observed  <- abs( observed )
+
         # Check content
         #cat( "\n############################################################\n" )
         #cat( "\npredicted:\n" )
@@ -434,5 +438,5 @@ saveResult<-function(statsReg, outputDir){
 
         #cat( content )
 
-        write.table(content, file = paste0(outputDir, "result.csv"), append = TRUE, row.names = TRUE, col.names=TRUE, sep=",")
+        write.table(content, file = paste0(outputDir, "result.csv"), append = TRUE, row.names = TRUE, col.names = TRUE, sep = "," )
 }
