@@ -29,7 +29,7 @@
 knn.run <- function(regressionParameterList){
         cat('knn.run \n')
 
-        print( regressionParameterList )
+        #print( regressionParameterList )
 
         dataSet_removed <- regressionParameterList$dataSet
         dataSet_TVC     <- data.frame( TVC = dataSet_removed$TVC )

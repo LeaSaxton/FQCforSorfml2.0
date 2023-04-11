@@ -187,6 +187,92 @@ run.regression <- function(regressionParameterList){
 
 }
 
+#' makeRankRmse
+#' @description make rankRmse.csv in /HEATMAPS/ dir.
+#' @author Shintaro Kinoshita \email{shintaro.kinoshita.584@@cranfield.ac.uk}
+#' @param outputDirectory  output directory
+#' @return
+#' @export
+#'
+#' @examples
+#' \dontrun{makeRankRmse(outputDirectory)}
+
+makeRankRmse <- function( configParams ){
+        # Define output directory, platform name and bacterial name
+        outDir        <- configParams$outputDirectory            #; print( outDir )
+        platformName  <- configParams$platformList$platformName  #; print( platformName )
+        bacterialName <- configParams$platformList$bacterialName #; print( bacterialName )
+
+        # Define dirpath : Modify outputDir if required
+        dirpath <- NULL
+        if (substr(outDir, nchar(outDir), nchar(outDir) ) != "/" ) { dirpath <- paste0(outDir, "/") }
+        else                                                       { dirpath <- outDir              }
+
+        # create HEATMAP dir
+        dirpath_heatmaps <- paste0( dirpath, "HEATMAPS", "/" )
+        if ( !dir.exists( dirpath_heatmaps ) ) {
+                cat( "\nNOTE : The directory '", dirpath_heatmaps, "' does not exist.\n" )
+                cat( "       So it was newly created.\n\n" )
+                dir.create( dirpath_heatmaps )
+        }
+
+        # Get result data from 'result.csv'
+        dirpath_result <- paste0( dirpath, "result.csv" )
+        result_data    <- read.table( dirpath_result, header = TRUE, sep = "," )
+        result_data    <- as.data.frame( result_data )
+
+        # Sort ascendant in RMSE values
+        result_data <- result_data[ order( result_data$RMSE ), ] #; print( result_data )
+
+        # Create full path of rankRmse.csv
+        filepath_heatmaps <- paste0( dirpath_heatmaps, "rankRmse.csv" )
+
+        # Create "rank #" rows
+        ranks <- NULL
+        for ( i in 1 : nrow( result_data ) ) {
+                rank  <- paste0( "\"rank #", i, "\"" )
+                ranks <- append( ranks, rank )
+        }
+
+        # Make list one line, combined by ","
+        ranks <- paste( ranks, collapse = "," )#; cat( ranks )
+
+        # Save ranks line into "ranksRmse.csv"
+        cat( ranks, file = filepath_heatmaps, append = FALSE )
+        cat(  "\n", file = filepath_heatmaps, append = TRUE  )
+
+        #"\shortstack{Enose \\ Pseudomonads}"
+        # Make line contains platform and bacterial name data
+        plat_bact <- paste0( "\"\\shortstack{",
+                             platformName,
+                             " \\\\ ",
+                             bacterialName,
+                             "}\"" )
+        #cat( "\n" ); cat( plat_bact ); cat( "\n" )
+        
+        # Make Statistics line in each models
+        models <- NULL
+        models <- append( models, plat_bact )
+
+        for ( i in 1 : nrow( result_data ) ) {
+                model <- paste( paste0( "\"\\shortstack{",   result_data[ i, 1 ]        ), # model name
+                                paste0( "RMSE: ",            result_data[ i, 2 ]        ), # RMSE
+                                paste0( "Acc: ",             result_data[ i, 3 ], "%"   ), # Accuracy
+                                paste0( "$\\Delta_{max}$: ", result_data[ i, 4 ]        ), # Delsa
+                                paste0( "$A_{f}$: ",         result_data[ i, 5 ]        ), # Af
+                                paste0( "$B_{f}$: ",         result_data[ i, 6 ], "}\"" ), # Bf
+                                sep = " \\\\ " )
+                models <- append( models, model )
+        }
+
+        # Make list one line, combined by ","
+        models <- paste( models, collapse = "," ) #; cat( models )
+
+        # Save models line into "ranksRmse.csv"
+        cat( models, file = filepath_heatmaps, append = TRUE )
+        cat(  "\n",  file = filepath_heatmaps, append = TRUE )
+
+}
 
 #' assess.quality
 #' @description assess.quality
@@ -217,17 +303,7 @@ assess.quality <- function(configFile=configFile){
 
         run.analysis(configParams)
 
+        # Modified by Shintaro Kinoshita : Create rank RMSE file
+        makeRankRmse(configParams)
+
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
