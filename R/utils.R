@@ -93,12 +93,13 @@ gePretreatmentVector <- function(pretreatment){
 #' @author Ozlem Karadeniz \email{ozlem.karadeniz.283@@cranfield.ac.uk}
 #' @param mlm  machine learning model list
 #' @param dataSet  dataFrame produced by analytical platforms
+#' @param bacterialName bacterial name
 #' @return list of regression parameters
 #'
 #' @examples
-#' \dontrun{getRegressionParameters(mlm, dataSet, platform )}
+#' \dontrun{getRegressionParameters(mlm, dataSet, platform, bacterialName )}
 
-getRegressionParameters <- function(mlm, dataSet, platform){
+getRegressionParameters <- function(mlm, dataSet, platform, bacterialName){
         mlmParams <- strsplit(mlm, ":")[[1]]
         if(mlmParams[2] == "" || is.na(mlmParams[2]))
                 mlmParams[2] <- "mean-center"
@@ -111,7 +112,8 @@ getRegressionParameters <- function(mlm, dataSet, platform){
 
         # regressionParameterList object contains all necessary infırmation for a machine learning model to run
         regressionParameterList <- list("method" = mlmParams[1], "pretreatment" =  mlmParams[2], "numberOfIterations" = as.numeric(mlmParams[3]),
-                                        "percentageForTrainingSet" = as.numeric(mlmParams[4]), dataSet = dataSet, "platform" = platform, "direction" = mlmParams[5])
+                                        "percentageForTrainingSet" = as.numeric(mlmParams[4]), dataSet = dataSet,
+                                        "platform" = platform, "direction" = mlmParams[5], "bacterialName" = bacterialName)
 
         return(regressionParameterList)
 
