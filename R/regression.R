@@ -257,14 +257,26 @@ makeRankRmse <- function( configParams ){
         models <- append( models, plat_bact )
 
         for ( i in 1 : nrow( result_data ) ) {
-                model <- paste( paste0( "\"\\shortstack{",   result_data[ i, 1 ]        ), # model name
-                                paste0( "RMSE: ",            result_data[ i, 2 ]        ), # RMSE
-                                paste0( "Acc: ",             result_data[ i, 3 ], "%"   ), # Accuracy
-                                paste0( "$\\Delta_{max}$: ", result_data[ i, 4 ]        ), # Delsa
-                                paste0( "$A_{f}$: ",         result_data[ i, 5 ]        ), # Af
-                                paste0( "$B_{f}$: ",         result_data[ i, 6 ], "}\"" ), # Bf
-                                sep = " \\\\ " )
-                models <- append( models, model )
+                if ( result_data[ i, 1 ] == "KNN" ) {
+                        model <- paste( paste0( "\"\\shortstack{",   result_data[ i, 1 ]        ), # model name
+                                        paste0( "(k=",               result_data[ i, 7 ], ")"   ), # k-value for KNN
+                                        paste0( "RMSE: ",            result_data[ i, 2 ]        ), # RMSE
+                                        paste0( "Acc: ",             result_data[ i, 3 ], "%"   ), # Accuracy
+                                        paste0( "$\\Delta_{max}$: ", result_data[ i, 4 ]        ), # Delta
+                                        paste0( "$A_{f}$: ",         result_data[ i, 5 ]        ), # Af
+                                        paste0( "$B_{f}$: ",         result_data[ i, 6 ], "}\"" ), # Bf
+                                        sep = " \\\\ " )
+                        models <- append( models, model )
+                } else {
+                        model <- paste( paste0( "\"\\shortstack{",   result_data[ i, 1 ]        ), # model name
+                                        paste0( "RMSE: ",            result_data[ i, 2 ]        ), # RMSE
+                                        paste0( "Acc: ",             result_data[ i, 3 ], "%"   ), # Accuracy
+                                        paste0( "$\\Delta_{max}$: ", result_data[ i, 4 ]        ), # Delta
+                                        paste0( "$A_{f}$: ",         result_data[ i, 5 ]        ), # Af
+                                        paste0( "$B_{f}$: ",         result_data[ i, 6 ], "}\"" ), # Bf
+                                        sep = " \\\\ " )
+                        models <- append( models, model )
+                }
         }
 
         # Make list one line, combined by ","

@@ -114,6 +114,8 @@ XGBoost.run <- function(regressionParameterList){
         #saveRDS( all_models, file = name_file )
 
         # Modified by Shinaro Kinoshita : Add statistics values into result.csv
+        bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
+        statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
         saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
 
         return (result)

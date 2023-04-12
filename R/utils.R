@@ -429,7 +429,8 @@ saveResult<-function(statsReg, method, outputDir){
                           Acc    = statsReg$Accuracy,
                           Delta  = statsReg$Worst,
                           Af     = statsReg$Af,
-                          Bf     = statsReg$Bf )
+                          Bf     = statsReg$Bf,
+                          k      = statsReg$bestK )
 
         #print( df )
 

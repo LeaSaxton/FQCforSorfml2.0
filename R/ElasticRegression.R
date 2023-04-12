@@ -73,7 +73,7 @@ elasticRegression.run <- function(regressionParameterList){
                 #cat( paste0( "is.null(testSet$TVC) : ", is.null( testSet$TVC ), "\n\n" ) )
 
                 # Performance metrics (RMSE and RSquare) are calculated by comparing the predicted and actual values
-                RMSE<- RMSE(testSet$TVC, predictedValues)
+                RMSE <- RMSE(testSet$TVC, predictedValues)
                 RSquare <- RSQUARE(testSet$TVC, predictedValues)
 
                 # Check if this model has the best RMSE so far
@@ -129,7 +129,9 @@ elasticRegression.run <- function(regressionParameterList){
         #saveRDS( all_models, file = name_path )
         #saveRDS( all_models, file = name_file )
 
-        # Modified by Shinaro Kinoshita : Add statistics values into result.csv
+        # statsReg will contains 'k value'
+        bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
+        statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
         saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList))

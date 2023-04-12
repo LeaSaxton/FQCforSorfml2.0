@@ -130,6 +130,9 @@ pls.pcr.run<- function(regressionParameterList){
         #saveRDS( all_models, file = name_file )
 
         # Modified by Shinaro Kinoshita : Add statistics values into result.csv
+        # statsReg will contains 'k value'
+        bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
+        statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
         saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
