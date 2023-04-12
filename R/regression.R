@@ -27,24 +27,26 @@ run.analysis <- function(configParams){
                 # arguments to readDataset function
                 dataSet = readDataset(fileList[i], metaList[i], bacterialNameList[i])
                 bestRMSE <- 100000
-                bestRSquare<-0
-                bestMLM<-""
+                bestRSquare <- 0
+                bestMLM <- ""
 
+                # Modified by Shintaro Kinoshita : add bacterial name list
                 if(configParams$createPCAPlots == TRUE)
-                        generatePCAPlots(dataSet, configParams$outputDirectory, platformList[i])
+                        generatePCAPlots(dataSet, configParams$outputDirectory, platformList[i], bacterialNameList[i])
 
                 mlmPerformanceResults <- vector(mode="list", length = length(mlmList))
 
                 # For each platforms and machine learning models following code is executed
                 for(j in 1:length(mlmList)) {
-                        mlm <-mlmList[j]
+                        mlm <- mlmList[j]
 
                         # RegressionParameterList is creates as list object which carries necessary parameters for machine learning
                         # models to run.
                         # elements of RegressionParameterList are set to default values if they are not supplied by the user.
                         # default values are defined in utils.R
-                        regressionParameterList <- getRegressionParameters(mlm,dataSet, platformList[i] )
-                        dataSet<-regressionParameterList$dataSet
+                        # Modified by Shintaro Kinoshita : add bacterialNameList[i] argument
+                        regressionParameterList <- getRegressionParameters( mlm, dataSet, platformList[i], bacterialNameList[i])
+                        dataSet <- regressionParameterList$dataSet
 
                         # Modified by Shintaro Kinoshita : Add configParams$outputDirectory to regressionParameterList
                         regressionParameterList$outputDir <- configParams$outputDirectory
