@@ -93,13 +93,14 @@ XGBoost.run <- function(regressionParameterList){
         # Modified by Lea Saxton : Save the best model and its hyperparameters
         name_platform <- regressionParameterList$platform
         name_model    <- regressionParameterList$method
-        name_file     <- paste0( name_platform, "_", name_model, ".rds" )
+        name_bacteria <- regressionParameterList$bacterialName
+        name_file     <- paste0( name_platform, "_",name_bacteria,"_", name_model, ".rda" )
         name_path_rds <- paste0( name_path, "/", name_file )
         #saveRDS( bestModel, file = name_file )
-        saveRDS( model_xgboost, file = name_path_rds )
+        save( model_xgboost, file = name_path_rds )
 
         # Modified by Lea Saxton : Save the associated RMSE in a file
-        name_file     <- paste0( name_platform, "_", name_model, ".txt" )
+        name_file     <- paste0( name_platform, "_",name_bacteria,"_", name_model, ".txt" )
         name_path_txt <- paste0( name_path, "/", name_file )
         #write.table( modelRMSE, file = name_file, row.names = FALSE, col.names = FALSE )
         write.table( modelRMSE, file = name_path_txt, row.names = FALSE, col.names = FALSE )

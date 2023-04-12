@@ -121,10 +121,10 @@ knn.run <- function(regressionParameterList){
         name_platform <- regressionParameterList$platform
         name_model    <- regressionParameterList$method
         name_bacteria <- regressionParameterList$bacterialName
-        name_file     <- paste0( name_platform, "_", name_bacteria, "_", name_model, ".rds" ) # 'platform'_'model'_reg.rds
+        name_file     <- paste0( name_platform, "_", name_bacteria, "_", name_model, ".rda" ) # 'platform'_'model'_reg.rda
         name_path_rds <- paste0( name_path, "/", name_file )
         #saveRDS( bestModel, file = name_file )
-        saveRDS( bestModel, file = name_path_rds )
+        save( bestModel, file = name_path_rds )
 
         # Modified by Lea Saxton : Save the associated RMSE in a file
         name_file     <- paste0( name_platform, "_", name_bacteria, "_", name_model, ".txt" ) # 'platform'_'model'_RMSE.rds
