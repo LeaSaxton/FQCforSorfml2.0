@@ -5,7 +5,7 @@
 #' @param plotName RMSE Means OR rsquare Means
 #' @param dataNames machine learning model names
 #' @param file output pdf file name
-#' @import colorRamps
+#' @import colorRamps ggplot2
 #'
 #' @examples
 #' \dontrun{generatePerformancePlot(data, plotName, dataNames, file)}
@@ -13,11 +13,13 @@
 generatePerformancePlot <- function(data, plotName, dataNames, file) {
 
         # Modified by Shintaro Kinoshita : Preview of the dataset
-        cat( "str( data )\n" );      str( data )
-        cat( "str( dataNames )\n" ); str( dataNames )
-        cat( "cat( file )\n" );      cat( file )
-        cat( "cat( plotName )\n" );  cat( plotName )
-        cat( "\n" )
+        #cat( "str( data )\n" );      print( data )
+        #cat( "str( dataNames )\n" ); print( dataNames )
+        #cat( "cat( file )\n" );      print( file )
+        #cat( "cat( plotName )\n" );  print( plotName )
+        #cat( "\n" )
+
+        if ( 0 ) { # Modified by Shintaro Kinoshita : COMMENTOUT
 
         # generate different colors for every data entry
         colors <- primary.colors(nrow(data) + 1, steps = 3, no.white = TRUE)
@@ -44,6 +46,39 @@ generatePerformancePlot <- function(data, plotName, dataNames, file) {
 
         # close file
         dev.off()
+
+        } # Modified by Shintaro Kinoshita : COMMENTOUT
+
+        # Create dataframe for ggplot
+        data_frame <- NULL
+        for ( i in 1 : nrow( data ) ) {
+                # Make vector for label
+                label <- rep( NA, ncol( data ) )
+                label[ as.integer( ncol( data ) * 0.8 ) ] <- dataNames[ i ]
+                # Make dataframe element being combined to the original dataframe
+                df_elem <- data.frame( Score      = as.numeric( data[ i, ] ),
+                                       Iterations = seq( ncol( data ) ),
+                                       Method     = rep( dataNames[ i ], ncol( data ) ),
+                                       Label      = label )
+                data_frame <- rbind( data_frame, df_elem )
+        }
+        #print( data_frame )
+
+        plot <- ggplot( data = data_frame, aes( x = Iterations, y = Score, colour = Method, label = Label ) )
+        plot <- plot +
+                theme_light() +
+                ggtitle( plotName ) +
+                xlim( 0, ncol( data ) + 3 ) +
+                xlab( "Iterations" ) +
+                theme( legend.position = "none",
+                       plot.title = element_text( size = 16, face = "bold" ),
+                       axis.title = element_text( size = 12, face = "bold" ) ) +
+                scale_x_continuous( breaks = seq( 0, ncol( data ) + 1, by = 2 ) ) +
+                geom_line( size = 1.5 ) +
+                geom_label( angle = 30 )
+
+        ggsave( plot = plot, filename = file )
+
 }
 
 

@@ -86,7 +86,7 @@ regularizedRegression.run <- function(regressionParameterList){
                 predictedValues <- predict(modelFit,  newx = testMx)
 
                 # Performance metrics (RMSE and RSquare) are calculated by comparing the predicted and actual values
-                RMSE<- RMSE(testSet$TVC, predictedValues)
+                RMSE <- RMSE(testSet$TVC, predictedValues)
                 RSquare <- RSQUARE(testSet$TVC, predictedValues)
 
                 # Check if this model has the best RMSE so far
