@@ -75,7 +75,7 @@ generatePerformancePlot <- function(data, plotName, dataNames, file) {
                        axis.title = element_text( size = 12, face = "bold" ) ) +
                 scale_x_continuous( breaks = seq( 0, ncol( data ) + 1, by = 2 ) ) +
                 geom_line( size = 1.5 ) +
-                geom_label( angle = 30 )
+                geom_label()
 
         ggsave( plot = plot, filename = file )
 

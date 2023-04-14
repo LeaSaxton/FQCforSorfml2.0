@@ -22,6 +22,7 @@ pruneTree <-function(modelTree, testSet) {
         cpSequence <- seq(from = 0.01, to = 0.1, by = 0.01)
         bestPrunedTree<-NULL
         bestCp <- 0
+        statsReg <- NULL
         for (cp in cpSequence) {
                 prunedTree <- prune(modelTree, cp = cp)
                 predicted <- predict(prunedTree, testSet, type="vector")
@@ -34,11 +35,12 @@ pruneTree <-function(modelTree, testSet) {
                         bestPrunedTree <- prunedTree
                         bestRSquare<-modelRSquare
                         bestCp <- cp
+                        statsReg <- statsRegression( predicted, testSet$TVC )
                 }
         }
         names(RMSEListForCpList) <-  cpSequence
-        return(list("RMSEList"= RMSEListForCpList, "RMSE" = bestRMSE, "bestPrunedTree" = bestPrunedTree, "RSquare" = bestRSquare ,
-                    "bestCp = ", bestCp ))
+        return(list("RMSEList" = RMSEListForCpList, "RMSE" = bestRMSE, "bestPrunedTree" = bestPrunedTree, "RSquare" = bestRSquare ,
+                    "bestCp" = bestCp, "statsReg" = statsReg ))
 }
 
 #' Main function to calculate  performance of Regression tree using bagging
@@ -110,9 +112,10 @@ regressionTree.run <- function(regressionParameterList){
                 # Check if this model has the best RMSE so far
                 if (RMSE < bestRMSE) {
                         bestRMSE  <- RMSE
-                        bestModel <- modelFit
-                        bestHyperParams <- list("k"=modelFit$bestTune[1,1])
-                        statsReg <- statsRegression( predictedValues, testSet$TVC )
+                        bestModel <- modelTree
+                        bestHyperParams <- list("k"=modelTree$bestTune[1,1])
+                        #statsReg <- statsRegression( predictedValues, testSet$TVC )
+                        statsReg <- pruneResult$statsReg
                 }
 
                 performanceResults[[i]] <- list("RMSE" = RMSE, "RSquare" = RSquare)
