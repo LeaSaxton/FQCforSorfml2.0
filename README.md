@@ -91,7 +91,7 @@ Configuration file contains user-defined parameters which are required by the ap
 
 Example of a input files is as following:
 
- <img src="images/input_file_example.png" alt="example input file" width="400"/>
+ <img src="images/input_file_example.png" alt="example input file" width="600"/>
 
 
 ## Reading data from input files
