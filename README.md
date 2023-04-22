@@ -56,7 +56,7 @@ All dependencies should be installed together with the FoodQualityController pac
 
 ## Install FoodQualityController from source
 
-You can download the latest source from the [FQCforSorfml GitHub repository page](https://github.com/ozlemkaradeniz/FoodQualityController).
+You can download the latest source from the [FQCforSorfml GitHub repository page](https://github.com/shin-kinos/FQCforSorfml).
 
 An example installation of FQC onto your environment using `git` command.
 
