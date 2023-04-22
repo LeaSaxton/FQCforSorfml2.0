@@ -1,7 +1,7 @@
 # Summary
 
 
-FoodQualityController is is a flexible and user-friendly R package that is used to identify, validate, and optimize the most suitable machine learning platform for the given analytical platform. Several machine learning models are created in the package to predict microbial quality in beef products.
+This is modified version of the [FoodQualityController R package](https://github.com/ozlemkaradeniz/FoodQualityController) which is optimised for the back-end side of sorfML 2.0. FQC is a flexible and user-friendly R package that is used to identify, validate, and optimise the most suitable machine learning platform for the given analytical platform. 14 machine learning models are created in the package to predict microbial quality in food products.
 
 # Table of Contents
 
@@ -28,7 +28,7 @@ The typical workflow of FoodQualityController is outlined below: <img src="image
 
 FoodQualityController needs the following:
 
--   **R** (tested on version 4.1.1)
+-   **R** (tested on version 4.2.2)
 -   **The following R libraries:** (The number is the version tested during development)
 
 <!-- -->
@@ -45,24 +45,32 @@ FoodQualityController needs the following:
        mixOmics (6.16.3)          xgboost (1.5.2.1)
        
 
-**Note:** The package is platform-independent; it was developed and runs on multiple operating systems (Windows, MacOS, Linux).
+**Note:** The package is platform-independent; it was developed and runs on multiple operating systems (Windows, MacOS).
 
 All dependencies should be installed together with the FoodQualityController package, however, they can be installed separately. To install all required CRAN dependencies of FoodQualityController, type the following in R:
 
 ```{r}
-install.packages(c("caret", "colorRamps", "Boruta", "corrplot", "doParallel", "e1071", "foreach", "glmnet", "mixOmics", "neuralnet" ,
+> install.packages(c("caret", "colorRamps", "Boruta", "corrplot", "doParallel", "e1071", "foreach", "glmnet", "mixOmics", "neuralnet" ,
 "openxlsx", "pls", "plyr", "randomForest", "rpart", "shape", "tools", "viridis", "xgboost"))
 ```
 
 ## Install FoodQualityController from source
 
-You can download the latest source tarball file (ending in .tar.gz) from the [latest release section](https://github.com/ozlemkaradeniz/FoodQualityController/releases) on the [FoodQualityController GitHub repository page](https://github.com/ozlemkaradeniz/FoodQualityController).
+You can download the latest source from the [FQCforSorfml GitHub repository page](https://github.com/ozlemkaradeniz/FoodQualityController).
 
-Then to install this local source package type the following in R:
+An example installation of FQC onto your environment using `git` command.
+
+Type the command below in your terminal:
+
+```
+% git clone https://github.com/shin-kinos/FQCforSorfml.git
+```
+
+Then, go to R consosle, and install the source package:
 
 ```{r}
-library(utils)
-install.packages("FQCforSorfml", repos = NULL, type = "source", dependencies=TRUE)
+> library(utils)
+> install.packages("FQCforSorfml", repos = NULL, type = "source", dependencies=TRUE)
 ```
 
 # Quick Start
@@ -72,7 +80,7 @@ install.packages("FQCforSorfml", repos = NULL, type = "source", dependencies=TRU
 Once the package is installed, to start using FoodQualityController simply load the FoodQualityController package in R:
 
 ```{r}
-library(FoodQualityController)
+> library(FoodQualityController)
 ```
 
 ## Reading application parameters from configuration file
@@ -92,23 +100,33 @@ Input datafiles from different analytical platforms contain microbial data on wh
 Name of the datafiles with absolute directory path should be provided with dataFileName tag under
 platformList tag in the configuration file, for more details see in 'Input configuration file format' section.
 
-## Creating output files
-
-Output directory is provided in outputDirectory section of configuration file by the user. If it is not provided, the output directory becomes the current working directory. 
-
-PCA plots for each platform are created in the output directory. 
-
-Moreover, performance plots which give the evolution of the performance of machine learning algorithms through the iterations are created in the output directory. 
-
-Lastly, statistics tables with RMSE and RSquare performance metrics and heatmaps which contain the ranking of machine learning algorithms in terms of RMSE are created in the output directory. 
-
 ## How to run FoodQualityController
 
 The main and only function that is exported to the user in FoodQualityController package is assess.quality.
 
 It is called as following with configuration file name as method parameter.
 
-assess.quality("/Users/ozlemkaradeniz/Cranfield/FoodQualityController/input/config.json")
+```{r}
+> assess.quality("/Users/shintarokinoshita/Cranfield/FoodQualityController/input/config.json")
+```
+
+## Creating output files
+
+Output directory is provided in outputDirectory section of configuration file by the user. If it is not provided, the output directory becomes the current working directory. 
+
+The general structure of the output directory and files are below:
+
+ <img src="images/output_dir_structure.png" alt="example output dir" width="600"/>
+
+-   `rankRmse.csv` : List of ML models which are sorted based on the RMSEs. ✅Note that the format of this data are optimised for LaTeX document preparation.
+-   `<PlatformName>_PCA.pdf` : PCA plot of analytical data.
+-   `<PlatformName>_RMSE_Means.pdf` : Line plot of the RMSE scores in each iteration between the ML models.
+-    `<PlatformName>_RSquare_Means.pdf` : Line plot of the RSquare scores in each iteration between the ML models.
+-    `result.csv` : CSV data recording results of the evaluation Statistics in each ML model.
+-    `RSME_Statistics.csv` : CSV data recording RMSEs in each model.
+-    `RSquare_Statistics.csv` : CSV data recording RSquares in each model.
+-    `<PlatformName>_<BacterialName>_<MLmodelName>.rda` : RDA data containing the model information which aqcuired the lowest RMSE throughout the iterations.
+-    `<PlatformName>_<BacterialName>_<MLmodelName>.txt` : Text data containing the lowest RMSE in the ML model.
 
 # Accessing help
 
@@ -117,8 +135,3 @@ To access help pages for any of the functions or built-in data provided by FoodQ
 ```{r}
 ?assess.quality
 ```
-
-# Questions, bug reports or issues
-
-For any questions, feature requests, bug reports or issues regarding the latest version of FoodQualityController, please use the "[issues](https://github.com/ozlemkaradeniz/FoodQualityController/issues)" tab located at the top-left of the GitHub repository page.
-

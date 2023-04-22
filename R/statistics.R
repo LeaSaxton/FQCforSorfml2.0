@@ -49,11 +49,16 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
                 return()
 
         cat("\n\nRMSE FOR ML METHODS\n\n")
-        Rmsedf<- as.data.frame(Rmsedf)
+        Rmsedf <- as.data.frame(Rmsedf)
+        print( "Rmsedf_01:" ); print( Rmsedf )
+        print( "methodNameWithDataPretreatment:" ); print( methodNameWithDataPretreatment )
+
         rownames(Rmsedf) <- methodNameWithDataPretreatment
-        #cat( Rmsedf )
+        #print( "Rmsedf_02:" ); print( Rmsedf )
+
         #cat( rownames( Rmsedf ) )
         colnames(Rmsedf) <- c("methodName", platformList)
+        #print( "Rmsedf_03:" ); print( Rmsedf )
 
         Rmsedf$ML_Means <- round(rowMeans(Rmsedf[2:ncol(Rmsedf)], na.rm=TRUE),4)
         Rmsedf <- rbind(Rmsedf, c(NA, round(colMeans(Rmsedf[2:ncol(Rmsedf)], na.rm=TRUE),4)))
