@@ -28,18 +28,19 @@
 randomForest.run <- function(regressionParameterList){
         cat('randomForest.run \n')
         cat(regressionParameterList$pretreatment, '\n') # ;cat( str( regressionParameterList ) )
-
         # Modified by Shintaro Kinohita : 
         dataSet_removed <- regressionParameterList$dataSet
         dataSet_TVC     <- data.frame( TVC = dataSet_removed$TVC ) # ;cat( str( dataSet_removed ) )
         dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ] # ;cat( str( dataSet_TVC ) )
-
+        if (regressionParameterList$pretreatment == "raw") {
+          dataSet <- cbind(dataSet_removed, dataSet_TVC)
+        } else {
         preProcValues <- preProcess(dataSet_removed, method = gePretreatmentVector(regressionParameterList$pretreatment))
         #preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
         dataSet <- cbind(dataSet_removed, dataSet_TVC) # ;cat( str( dataSet ) )
         regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
         dataSet <- regressionParameterList$dataSet
-
+        }
         performanceResults <- vector(mode="list", length = regressionParameterList$numberOfIterations)
 
         set.seed(1821)

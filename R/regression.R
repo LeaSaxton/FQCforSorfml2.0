@@ -124,7 +124,7 @@ run.analysis <- function(configParams){
 run.regression <- function(regressionParameterList){
         method<-regressionParameterList$method
         cat('run.regression is starting \n')
-        cat(paste0("mehod name : ", method, "\n"))
+        cat(paste0("method name : ", method, "\n"))
         result<-NULL
         if(method == "SVR-Radial"){
                 cat('svr.run is starting \n')

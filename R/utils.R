@@ -80,7 +80,7 @@ gePretreatmentVector <- function(pretreatment){
         if(pretreatment == "range-scale"){
                 return(c("range"))
         }
-        if(pretreatment == "mean-center"){
+        if(pretreatment == "meam"){
                 return(c("center"))
         }
 }
