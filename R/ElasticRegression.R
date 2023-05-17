@@ -31,10 +31,13 @@ elasticRegression.run <- function(regressionParameterList){
 
         # In regression, it is often recommended to scale the features to make it easier to interpret the intercept term.
         # Scaling type is supplied by the user
-        preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
-        regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
-        dataSet <- regressionParameterList$dataSet
-
+        if (regressionParameterList$pretreatment == "raw") {
+          dataSet <- regressionParameterList$dataSet
+        }else{
+          preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
+          regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
+          dataSet <- regressionParameterList$dataSet
+        }
         set.seed(1821)
 
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,

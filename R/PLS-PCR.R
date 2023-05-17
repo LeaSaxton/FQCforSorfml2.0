@@ -32,12 +32,15 @@ pls.pcr.run<- function(regressionParameterList){
         dataSet_removed <- regressionParameterList$dataSet
         dataSet_TVC     <- data.frame( TVC = dataSet_removed$TVC )
         dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ]
-
+        if (regressionParameterList$pretreatment == "raw") {
+          dataSet <- cbind(dataSet_removed, dataSet_TVC)
+        } else {
         #preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
-        preProcValues <- preProcess(dataSet_removed, method = gePretreatmentVector(regressionParameterList$pretreatment))
-        dataSet <- cbind(dataSet_removed, dataSet_TVC)
-        regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
-        dataSet <- regressionParameterList$dataSet
+          preProcValues <- preProcess(dataSet_removed, method = gePretreatmentVector(regressionParameterList$pretreatment))
+          dataSet <- cbind(dataSet_removed, dataSet_TVC)
+          regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
+          dataSet <- regressionParameterList$dataSet
+        }
         set.seed(1821)
         # Partition data into training and test set
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,

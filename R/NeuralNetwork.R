@@ -17,17 +17,22 @@
 #' \dontrun{neuralNetwork.run(regressionParameterList)}
 
 neuralNetwork.run <- function(regressionParameterList){
-
+        cat(regressionParameterList$pretreatment)
+        cat(gePretreatmentVector(regressionParameterList$pretreatment))
+        if (regressionParameterList$pretreatment == "raw") {
+          dataSet <- regressionParameterList$dataSet
+        } else {
         preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
         regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
         dataSet <- regressionParameterList$dataSet
-
+        }
+        cat('Hello')
         set.seed(90)
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,
                                           list = FALSE, times = regressionParameterList$numberOfIterations)
 
         performanceResults <- vector(mode="list", length = regressionParameterList$numberOfIterations)
-
+        cat("Hello2")
         # Modified by Shintaro Kinoshita : List of models for RDS
         #all_models <- list()
 
@@ -37,7 +42,7 @@ neuralNetwork.run <- function(regressionParameterList){
 
         # Modified by Shintaro Kinoshita : Define the statistics regression list
         statsReg <- NULL
-
+        cat("Hello error might be below")
         for(i in 1:regressionParameterList$numberOfIterations) {
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
@@ -66,7 +71,7 @@ neuralNetwork.run <- function(regressionParameterList){
                 # Modified by Shintaro Kinoshita : append model to the list
                 #all_models[[i]] <- modelFit
         }
-
+        cat("Hello3")
         # Modified by Shintaro Kinoshita : Make "temp" dir to save RDS files
         name_path <- regressionParameterList$outputDir
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {

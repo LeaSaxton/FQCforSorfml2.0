@@ -20,8 +20,8 @@ defDirectionInStepwiseRegression <-"backward"
 #' \dontrun{RMSE(true, predicted)}
 
 RMSE <- function(true, predicted){
-        RMSE <- sqrt(mean((predicted - true)^2))
-        return(RMSE)
+  RMSE <- sqrt(mean((predicted - true)^2))
+  return(RMSE)
 }
 
 #' RSQUARE
@@ -36,8 +36,8 @@ RMSE <- function(true, predicted){
 #' \dontrun{RSQUARE(true, predicted)}
 
 RSQUARE <- function(true, predicted){
-        RSquare <- 1 - sum((predicted - true)^2) / sum((true - mean(true))^2)
-        return(RSquare)
+  RSquare <- 1 - sum((predicted - true)^2) / sum((true - mean(true))^2)
+  return(RSquare)
 }
 
 #' evalMetrics
@@ -52,10 +52,10 @@ RSQUARE <- function(true, predicted){
 #' \dontrun{evalMetrics(true, predicted)}
 
 evalMetrics <- function(true, predicted) {
-        RSquare <- RSQUARE(true, predicted)
-        RMSE = RMSE(true, predicted)
-        return(list("RMSE" = RMSE, "RSquare" = RSquare))
-
+  RSquare <- RSQUARE(true, predicted)
+  RMSE = RMSE(true, predicted)
+  return(list("RMSE" = RMSE, "RSquare" = RSquare))
+  
 }
 
 #' gePretreatmentVector
@@ -69,20 +69,20 @@ evalMetrics <- function(true, predicted) {
 #' \dontrun{gePretreatmentVector(pretreatment)}
 #'
 gePretreatmentVector <- function(pretreatment){
-        # Pretreatment parameter is changed to vector as it is required by
-        # caret::preProcess method.
-        if (pretreatment == "no_pretreatment"){
-                return(pretreatment)
-        }
-        if(pretreatment == "auto-scale"){
-                return(c("center", "scale"))
-        }
-        if(pretreatment == "range-scale"){
-                return(c("range"))
-        }
-        if(pretreatment == "meam"){
-                return(c("center"))
-        }
+  # Pretreatment parameter is changed to vector as it is required by
+  # caret::preProcess method.
+  if (pretreatment == "no_pretreatment"){
+    return(pretreatment)
+  }
+  if(pretreatment == "auto-scale"){
+    return(c("center", "scale"))
+  }
+  if(pretreatment == "range-scale"){
+    return(c("range"))
+  }
+  if(pretreatment == "meam"){
+    return(c("center"))
+  }
 }
 
 #' getRegressionParameters
@@ -100,23 +100,23 @@ gePretreatmentVector <- function(pretreatment){
 #' \dontrun{getRegressionParameters(mlm, dataSet, platform, bacterialName )}
 
 getRegressionParameters <- function(mlm, dataSet, platform, bacterialName){
-        mlmParams <- strsplit(mlm, ":")[[1]]
-        if(mlmParams[2] == "" || is.na(mlmParams[2]))
-                mlmParams[2] <- "mean-center"
-        if(mlmParams[3] == "" || is.na(mlmParams[3]))
-                mlmParams[3] <- defNumberOfIterations
-        if(mlmParams[4] == ""  || is.na(mlmParams[4]))
-                mlmParams[4] <- defPercentageForTrainingSet
-        if(mlmParams[5] == ""  || is.na(mlmParams[5]))
-                mlmParams[5] <- defDirectionInStepwiseRegression
-
-        # regressionParameterList object contains all necessary infırmation for a machine learning model to run
-        regressionParameterList <- list("method" = mlmParams[1], "pretreatment" =  mlmParams[2], "numberOfIterations" = as.numeric(mlmParams[3]),
-                                        "percentageForTrainingSet" = as.numeric(mlmParams[4]), dataSet = dataSet,
-                                        "platform" = platform, "direction" = mlmParams[5], "bacterialName" = bacterialName)
-
-        return(regressionParameterList)
-
+  mlmParams <- strsplit(mlm, ":")[[1]]
+  if(mlmParams[2] == "" || is.na(mlmParams[2]))
+    mlmParams[2] <- "mean-center"
+  if(mlmParams[3] == "" || is.na(mlmParams[3]))
+    mlmParams[3] <- defNumberOfIterations
+  if(mlmParams[4] == ""  || is.na(mlmParams[4]))
+    mlmParams[4] <- defPercentageForTrainingSet
+  if(mlmParams[5] == ""  || is.na(mlmParams[5]))
+    mlmParams[5] <- defDirectionInStepwiseRegression
+  
+  # regressionParameterList object contains all necessary infırmation for a machine learning model to run
+  regressionParameterList <- list("method" = mlmParams[1], "pretreatment" =  mlmParams[2], "numberOfIterations" = as.numeric(mlmParams[3]),
+                                  "percentageForTrainingSet" = as.numeric(mlmParams[4]), dataSet = dataSet,
+                                  "platform" = platform, "direction" = mlmParams[5], "bacterialName" = bacterialName)
+  
+  return(regressionParameterList)
+  
 }
 
 #' plotPrediction
@@ -131,10 +131,10 @@ getRegressionParameters <- function(mlm, dataSet, platform, bacterialName){
 
 
 plotPrediction <- function(model, testSet) {
-        predicted <- predict(model, testSet)
-        RMSE <- RMSE(testSet$TVC, predicted)
-        plot(predicted, testSet$TVC, xlab='Predicted log10 TVC',
-             ylab='Actual log10 TVC', main=paste('RMSE:', RMSE))
+  predicted <- predict(model, testSet)
+  RMSE <- RMSE(testSet$TVC, predicted)
+  plot(predicted, testSet$TVC, xlab='Predicted log10 TVC',
+       ylab='Actual log10 TVC', main=paste('RMSE:', RMSE))
 }
 
 #' readConfigFile
@@ -150,54 +150,54 @@ plotPrediction <- function(model, testSet) {
 #' \dontrun{readConfigFile(configFile)}
 
 readConfigFile<-function(configFile){
-
-        fileExtension <- tolower(file_ext(configFile))
-        if(fileExtension != "json")
-                stop("Input parameters validation error: Configuration file format is not supported, json is valid!")
-
-        config <-read.config(file = configFile)
-
-        # checks if the output directory exists
-        # Output directory will contain statistics report, pca plots and performance plots
-        # generated by the program
-        if(!is.null(config$outputDirectory) && !file.exists(config$outputDirectory))
-                stop("Input parameters validation error: Output directory does not exist!")
-
-        #if output directory is not provided, working directory is used as an outputDirectory
-        if(is.null(config$outputDirectory) || is.na(config$outputDirectory))
-                config$outputDirectory = getwd()
-
-        #config$outputDirectory = paste0(config$outputDirectory, "/FoodQualityController-", Sys.time())
-
-        # machinelearningmodels are parsed and a vector of machineLearningModels is created in different format
-        # each machine leaarning model in the vector becomes string in the format of
-        # shortName:pretreatment:numberOfIterations:proportionOfTrainingSet
-        mlmConfig <-  config$machineLearningModels
-        mlmList <-c()
-        for(i in 1:length(mlmConfig$shortName)){
-                if( (mlmConfig$shortName[i] == "RT" || mlmConfig$shortName[i] == "RFR")  && (!is.null(mlmConfig$direction[i]) && !is.na(mlmConfig$direction[i])))
-                        warning("Data pretreatmet is not performed in Ramdom Forests and Regression Trees, parameter is ignored!")
-                if(mlmConfig$shortName[i] != "SR" &&  !is.null(mlmConfig$direction[i]) && !is.na(mlmConfig$direction[i]))
-                        warning("direction paremeter is only used in Stepwise Regression, in other regression models it is ignored!")
-
-                if(is.null(mlmConfig$pretreatment[i]) || is.na(mlmConfig$pretreatment[i]))
-                        mlmConfig$pretreatment[i] <- "mean-center"
-                if(is.null(mlmConfig$numberOfIterations[i]) || is.na(mlmConfig$numberOfIterations[i]))
-                        mlmConfig$numberOfIterations[i] <- defNumberOfIterations
-                if(is.null(mlmConfig$proportionOfTrainingSet[i]) || is.na(mlmConfig$proportionOfTrainingSet[i]))
-                        mlmConfig$proportionOfTrainingSet[i] <- defPercentageForTrainingSet
-                 if(is.null(mlmConfig$direction[i]) || is.na(mlmConfig$direction[i]) )
-                        mlmConfig$direction[i] <- defDirectionInStepwiseRegression
-
-
-                mlmList <- c(mlmList, paste0(mlmConfig$shortName[i], ":" , mlmConfig$pretreatment[i], ":",
-                                             mlmConfig$numberOfIterations[i], ":" ,mlmConfig$proportionOfTrainingSet[i], ":"))
-        }
-
-        config$machineLearningModels <- mlmList
-
-        return(config)
-
+  
+  fileExtension <- tolower(file_ext(configFile))
+  if(fileExtension != "json")
+    stop("Input parameters validation error: Configuration file format is not supported, json is valid!")
+  
+  config <-read.config(file = configFile)
+  
+  # checks if the output directory exists
+  # Output directory will contain statistics report, pca plots and performance plots
+  # generated by the program
+  if(!is.null(config$outputDirectory) && !file.exists(config$outputDirectory))
+    stop("Input parameters validation error: Output directory does not exist!")
+  
+  #if output directory is not provided, working directory is used as an outputDirectory
+  if(is.null(config$outputDirectory) || is.na(config$outputDirectory))
+    config$outputDirectory = getwd()
+  
+  #config$outputDirectory = paste0(config$outputDirectory, "/FoodQualityController-", Sys.time())
+  
+  # machinelearningmodels are parsed and a vector of machineLearningModels is created in different format
+  # each machine leaarning model in the vector becomes string in the format of
+  # shortName:pretreatment:numberOfIterations:proportionOfTrainingSet
+  mlmConfig <-  config$machineLearningModels
+  mlmList <-c()
+  for(i in 1:length(mlmConfig$shortName)){
+    if( (mlmConfig$shortName[i] == "RT" || mlmConfig$shortName[i] == "RFR")  && (!is.null(mlmConfig$direction[i]) && !is.na(mlmConfig$direction[i])))
+      warning("Data pretreatmet is not performed in Ramdom Forests and Regression Trees, parameter is ignored!")
+    if(mlmConfig$shortName[i] != "SR" &&  !is.null(mlmConfig$direction[i]) && !is.na(mlmConfig$direction[i]))
+      warning("direction paremeter is only used in Stepwise Regression, in other regression models it is ignored!")
+    
+    if(is.null(mlmConfig$pretreatment[i]) || is.na(mlmConfig$pretreatment[i]))
+      mlmConfig$pretreatment[i] <- "mean-center"
+    if(is.null(mlmConfig$numberOfIterations[i]) || is.na(mlmConfig$numberOfIterations[i]))
+      mlmConfig$numberOfIterations[i] <- defNumberOfIterations
+    if(is.null(mlmConfig$proportionOfTrainingSet[i]) || is.na(mlmConfig$proportionOfTrainingSet[i]))
+      mlmConfig$proportionOfTrainingSet[i] <- defPercentageForTrainingSet
+    if(is.null(mlmConfig$direction[i]) || is.na(mlmConfig$direction[i]) )
+      mlmConfig$direction[i] <- defDirectionInStepwiseRegression
+    
+    
+    mlmList <- c(mlmList, paste0(mlmConfig$shortName[i], ":" , mlmConfig$pretreatment[i], ":",
+                                 mlmConfig$numberOfIterations[i], ":" ,mlmConfig$proportionOfTrainingSet[i], ":"))
+  }
+  
+  config$machineLearningModels <- mlmList
+  
+  return(config)
+  
 }
 
 
@@ -218,90 +218,90 @@ readConfigFile<-function(configFile){
 
 # Modified by Shintaro Kinoshita : add "metaFileName" and "bacterialName" arguments to "readData" function
 readDataset<-function(dataFileName, metaFileName, bacterialName){
-
-        fileExtension <- tolower(file_ext(dataFileName))
-
-        # According to file extension different method is used to read data
-        if(fileExtension == "xlsx")
-                dataSet <- openxlsx::read.xlsx(dataFileName, sheet = 1, rowNames=TRUE, colNames = TRUE,)
-        if(fileExtension == "csv")
-                dataSet <- as.data.frame(read.csv(dataFileName, sep=",", header=TRUE, row.names=1))
-
-        emptyColumns <- colSums(is.na(dataSet) | dataSet == "") == nrow(dataSet)
-        dataSet <- dataSet[, !emptyColumns]
-
-        dataSet <- na.omit(dataSet)
-
-        colnames(dataSet) <- gsub("X","", colnames(dataSet))
-        #colnames(dataSet)=as.character(colnames(dataSet))
-
-        #if(any(!is.na(as.numeric(colnames(dataSet)))))
-        #colnames(dataSet)[colnames(dataSet)!="TVC"] <- paste0("a", colnames(dataSet),"")
-
-         # Number of features is reduced by feature selection,
-         # import in processing FTIR data
-         if(ncol(dataSet) > 200){
-                features<- selectFeatures(dataSet)
-                dataSet<-dataSet[,c(features,"TVC")] # PCA, CFC, STAA, MRS, Pseudomonas
-         }
-
-        # Modified by Shintaro Kinoshita : Read metadata
-        rawMetaData <- read.csv( metaFileName, header = TRUE )
-
-        # Modified by Shintaro Kinoshita : Check if the metadata contains the data named 'bacterialName'
-        cat( paste0( "\nbacterialName : ", bacterialName, "\n" ) )
-        if ( !any( names( rawMetaData ) == bacterialName ) ) {
-                cat( "WARNING : ", "The data column named '", bacterialName, "' was not found in the metadata." )
-                cat( "\nCheck the metadata content again.\n" )
-                cat( paste0( "'", names( rawMetaData )[ length( rawMetaData ) ], "' in the metadata are used instead. \n\n" ) )
-                bacterialName <- names( rawMetaData )[ length( rawMetaData ) ]
-        }
-
-        # Modified by Shintaro Kinoshita : Combine Dataset and TVC data if not found
-        if( !length( grep( bacterialName, names( dataSet ) ) ) > 0 && !is.null( metaFileName ) ) {
-                metaData    <- data.frame( TVC = rawMetaData[ , bacterialName ] ) #; print( metaData )
-                min_nrow    <- min( nrow( dataSet ), nrow( metaData ) ) #; print( min_nrow )
-                dataSet     <- cbind( dataSet[ 1:min_nrow, ], TVC = metaData[ 1:min_nrow, ] )#; print( dataSet_mod )
-                cat( paste0( "NOTE : NO '", bacterialName, "' data found in the original data. the first ", min_nrow, " rows in the metadata were combined to the original dataset." ) )
-        }
-
-        #cat( "\n" )
-        #print( dataSet )
-
-        return(dataSet)
-
+  
+  fileExtension <- tolower(file_ext(dataFileName))
+  
+  # According to file extension different method is used to read data
+  if(fileExtension == "xlsx")
+    dataSet <- openxlsx::read.xlsx(dataFileName, sheet = 1, rowNames=TRUE, colNames = TRUE,)
+  if(fileExtension == "csv")
+    dataSet <- as.data.frame(read.csv(dataFileName, sep=",", header=TRUE, row.names=1))
+  
+  emptyColumns <- colSums(is.na(dataSet) | dataSet == "") == nrow(dataSet)
+  dataSet <- dataSet[, !emptyColumns]
+  
+  dataSet <- na.omit(dataSet)
+  
+  colnames(dataSet) <- gsub("X","", colnames(dataSet))
+  #colnames(dataSet)=as.character(colnames(dataSet))
+  
+  #if(any(!is.na(as.numeric(colnames(dataSet)))))
+  #colnames(dataSet)[colnames(dataSet)!="TVC"] <- paste0("a", colnames(dataSet),"")
+  
+  # Number of features is reduced by feature selection,
+  # import in processing FTIR data
+  if(ncol(dataSet) > 200){
+    features<- selectFeatures(dataSet)
+    dataSet<-dataSet[,c(features,"TVC")] # PCA, CFC, STAA, MRS, Pseudomonas
+  }
+  
+  # Modified by Shintaro Kinoshita : Read metadata
+  rawMetaData <- read.csv( metaFileName, header = TRUE )
+  
+  # Modified by Shintaro Kinoshita : Check if the metadata contains the data named 'bacterialName'
+  cat( paste0( "\nbacterialName : ", bacterialName, "\n" ) )
+  if ( !any( names( rawMetaData ) == bacterialName ) ) {
+    cat( "WARNING : ", "The data column named '", bacterialName, "' was not found in the metadata." )
+    cat( "\nCheck the metadata content again.\n" )
+    cat( paste0( "'", names( rawMetaData )[ length( rawMetaData ) ], "' in the metadata are used instead. \n\n" ) )
+    bacterialName <- names( rawMetaData )[ length( rawMetaData ) ]
+  }
+  
+  # Modified by Shintaro Kinoshita : Combine Dataset and TVC data if not found
+  if( !length( grep( bacterialName, names( dataSet ) ) ) > 0 && !is.null( metaFileName ) ) {
+    metaData    <- data.frame( TVC = rawMetaData[ , bacterialName ] ) #; print( metaData )
+    min_nrow    <- min( nrow( dataSet ), nrow( metaData ) ) #; print( min_nrow )
+    dataSet     <- cbind( dataSet[ 1:min_nrow, ], TVC = metaData[ 1:min_nrow, ] )#; print( dataSet_mod )
+    cat( paste0( "NOTE : NO '", bacterialName, "' data found in the original data. the first ", min_nrow, " rows in the metadata were combined to the original dataset." ) )
+  }
+  
+  #cat( "\n" )
+  #print( dataSet )
+  
+  return(dataSet)
+  
 }
 
 createPerformanceStatistics <- function(performanceResults, regressionParameterList){
-        # RMSEList contains list of RMSE for each iteration
-        RMSEList <- vector(mode="list", length = regressionParameterList$numberOfIterations)
-        RSquareList <- vector(mode="list", length = regressionParameterList$numberOfIterations)
-
-        RMSEList <- unlist(lapply(performanceResults, function(x) x$RMSE))
-        meanRMSE <- round(mean(RMSEList), 4)
-        cumulativeMeanRMSEList <- cumsum(RMSEList) / seq_along(RMSEList)
-        names(cumulativeMeanRMSEList) <- seq_along(RMSEList)
-
-        # RSquareList contains list of RSquare for each iteration
-        RSquareList <- unlist(lapply(performanceResults, function(x) x$RSquare))
-        meanRSquare <- round(mean(RSquareList), 4)
-        cumulativeMeanRSquareList <- cumsum(RSquareList) / seq_along(RSquareList)
-        names(cumulativeMeanRSquareList) <- seq_along(RSquareList)
-
-        bestHyperParamsList <- NULL
-        if(!is.null(performanceResults[[1]]$bestHyperParams))
-                bestHyperParamsList <- unlist(lapply(performanceResults, function(x) x$bestHyperParams))
-
-        regressionParameterList$methodWithDataScaling <- paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ")")
-
-        cat(paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ") mean RMSE: ", meanRMSE, '\n'))
-        cat(paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ") mean RSquare: ", meanRSquare, '\n'))
-
-        # Result object is returned to run.regression function in regression.R, which contains whole performance information for the machine learning model
-        result <- list("RMSEList"= RMSEList, "cumulativeMeanRMSEList" = cumulativeMeanRMSEList, "RMSE" = meanRMSE,
-                       "RSquareList" = RSquareList, "cumulativeMeanRSquareList" = cumulativeMeanRSquareList, "RSquare" = meanRSquare,
-                       "bestHyperParamsList" = bestHyperParamsList, method = regressionParameterList$method, platform = regressionParameterList$platform,
-                       "pretreatment" = regressionParameterList$pretreatment)
+  # RMSEList contains list of RMSE for each iteration
+  RMSEList <- vector(mode="list", length = regressionParameterList$numberOfIterations)
+  RSquareList <- vector(mode="list", length = regressionParameterList$numberOfIterations)
+  
+  RMSEList <- unlist(lapply(performanceResults, function(x) x$RMSE))
+  meanRMSE <- round(mean(RMSEList), 4)
+  cumulativeMeanRMSEList <- cumsum(RMSEList) / seq_along(RMSEList)
+  names(cumulativeMeanRMSEList) <- seq_along(RMSEList)
+  
+  # RSquareList contains list of RSquare for each iteration
+  RSquareList <- unlist(lapply(performanceResults, function(x) x$RSquare))
+  meanRSquare <- round(mean(RSquareList), 4)
+  cumulativeMeanRSquareList <- cumsum(RSquareList) / seq_along(RSquareList)
+  names(cumulativeMeanRSquareList) <- seq_along(RSquareList)
+  
+  bestHyperParamsList <- NULL
+  if(!is.null(performanceResults[[1]]$bestHyperParams))
+    bestHyperParamsList <- unlist(lapply(performanceResults, function(x) x$bestHyperParams))
+  
+  regressionParameterList$methodWithDataScaling <- paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ")")
+  
+  cat(paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ") mean RMSE: ", meanRMSE, '\n'))
+  cat(paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ") mean RSquare: ", meanRSquare, '\n'))
+  
+  # Result object is returned to run.regression function in regression.R, which contains whole performance information for the machine learning model
+  result <- list("RMSEList"= RMSEList, "cumulativeMeanRMSEList" = cumulativeMeanRMSEList, "RMSE" = meanRMSE,
+                 "RSquareList" = RSquareList, "cumulativeMeanRSquareList" = cumulativeMeanRSquareList, "RSquare" = meanRSquare,
+                 "bestHyperParamsList" = bestHyperParamsList, method = regressionParameterList$method, platform = regressionParameterList$platform,
+                 "pretreatment" = regressionParameterList$pretreatment)
 }
 
 #' selectFeatures
@@ -316,16 +316,16 @@ createPerformanceStatistics <- function(performanceResults, regressionParameterL
 #' \dontrun{selectFeatures(dataSet)}
 
 selectFeatures<-function(dataSet){
-
-        # Perform Boruta search
-        # It uses Rnadomforest model behind,
-        # search top-down and eliminates the irrelevant features step-by-step progressively.
-        boruta_output <- Boruta(TVC ~ ., data=na.omit(dataSet), doTrace=0)
-
-        boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
-
-        return(boruta_signif)
-
+  
+  # Perform Boruta search
+  # It uses Rnadomforest model behind,
+  # search top-down and eliminates the irrelevant features step-by-step progressively.
+  boruta_output <- Boruta(TVC ~ ., data=na.omit(dataSet), doTrace=0)
+  
+  boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
+  
+  return(boruta_signif)
+  
 }
 
 #' removeRedundantFeatures
@@ -340,22 +340,22 @@ selectFeatures<-function(dataSet){
 #' \dontrun{removeRedundantFeatures(selectFeatures)}
 
 removeRedundantFeatures<-function(dataSet){
-        # Remove non-informative  features
-        nzv <- caret::nearZeroVar(dataSet, saveMetrics= TRUE)
-        dataSet <- dataSet[, !nzv$nzv]
-
-        # Calculate correlation matrix
-        descrCor <- cor(dataSet)
-
-        # Finds higly correlated features
-        highlyCorrelated <- findCorrelation(descrCor, cutoff=0.7)
-        highlyCorCol <- colnames(dataSet)[highlyCorrelated]
-
-        # Removes highly correlated features
-        dat <- dataSet[, -which(colnames(dataSet) %in% highlyCorCol)]
-
-        return(dat)
-
+  # Remove non-informative  features
+  nzv <- caret::nearZeroVar(dataSet, saveMetrics= TRUE)
+  dataSet <- dataSet[, !nzv$nzv]
+  
+  # Calculate correlation matrix
+  descrCor <- cor(dataSet)
+  
+  # Finds higly correlated features
+  highlyCorrelated <- findCorrelation(descrCor, cutoff=0.7)
+  highlyCorCol <- colnames(dataSet)[highlyCorrelated]
+  
+  # Removes highly correlated features
+  dat <- dataSet[, -which(colnames(dataSet) %in% highlyCorCol)]
+  
+  return(dat)
+  
 }
 
 #' statsRegression
@@ -370,46 +370,46 @@ removeRedundantFeatures<-function(dataSet){
 #' \dontrun{statsRegression(predicted, ovserved)}
 
 statsRegression<-function(predicted, observed){
-        # Make varilables absolute
-        predicted <- abs( predicted )
-        observed  <- abs( observed )
-
-        # Check content
-        #cat( "\n############################################################\n" )
-        #cat( "\npredicted:\n" )
-        #cat( predicted )
-        #cat( "\nobserved:\n" )
-        #cat( observed )
-        #cat( "\n" )
-
-        #diff     <- abs(predicted-observed)
-        #Bf       <- 10^(mean(log10(predicted/observed)))
-        #Af       <- 10^mean(abs(log10(predicted/observed)))
-        #RMSE     <- sqrt(mean((predicted - observed)^2))
-        #Accuracy <- 100*(length(diff[which(diff<=1)])/length(predicted))
-        #Worst    <- max(diff)
-
-        #cat( "\n\n" )
-        #cat( paste0( "Bf       = ", Bf,       "\n") )
-        #cat( paste0( "Af       = ", Af,       "\n") )
-        #cat( paste0( "RMSE     = ", RMSE,     "\n") )
-        #cat( paste0( "Accuracy = ", Accuracy, "\n") )
-        #cat( paste0( "Worst    = ", Worst,    "\n") )
-        #cat( "\n\n" )
-
-        # Accuracy is the number of samples which are in which |pred-obs|<1 over the total num of samples
-        diff <- abs(predicted-observed)
-        params <- data.frame(
-                Bf = 10^(mean(log10(predicted/observed))),
-                Af = 10^mean(abs(log10(predicted/observed))),
-                RMSE = sqrt(mean((predicted - observed)^2)),
-                Accuracy = 100*(length(diff[which(diff<=1)])/length(predicted)),
-                Worst = max(diff)
-        )
-        #cat( "\n############################################################\n" )
-
-        return(round(params, 3))
-
+  # Make varilables absolute
+  predicted <- abs( predicted )
+  observed  <- abs( observed )
+  
+  # Check content
+  #cat( "\n############################################################\n" )
+  #cat( "\npredicted:\n" )
+  #cat( predicted )
+  #cat( "\nobserved:\n" )
+  #cat( observed )
+  #cat( "\n" )
+  
+  #diff     <- abs(predicted-observed)
+  #Bf       <- 10^(mean(log10(predicted/observed)))
+  #Af       <- 10^mean(abs(log10(predicted/observed)))
+  #RMSE     <- sqrt(mean((predicted - observed)^2))
+  #Accuracy <- 100*(length(diff[which(diff<=1)])/length(predicted))
+  #Worst    <- max(diff)
+  
+  #cat( "\n\n" )
+  #cat( paste0( "Bf       = ", Bf,       "\n") )
+  #cat( paste0( "Af       = ", Af,       "\n") )
+  #cat( paste0( "RMSE     = ", RMSE,     "\n") )
+  #cat( paste0( "Accuracy = ", Accuracy, "\n") )
+  #cat( paste0( "Worst    = ", Worst,    "\n") )
+  #cat( "\n\n" )
+  
+  # Accuracy is the number of samples which are in which |pred-obs|<1 over the total num of samples
+  diff <- abs(predicted-observed)
+  params <- data.frame(
+    Bf = 10^(mean(log10(predicted/observed))),
+    Af = 10^mean(abs(log10(predicted/observed))),
+    RMSE = sqrt(mean((predicted - observed)^2)),
+    Accuracy = 100*(length(diff[which(diff<=1)])/length(predicted)),
+    Worst = max(diff)
+  )
+  #cat( "\n############################################################\n" )
+  
+  return(round(params, 3))
+  
 }
 
 #' saveResult
@@ -423,38 +423,38 @@ statsRegression<-function(predicted, observed){
 #' \dontrun{saveResult(statsReg, outDir)}
 
 saveResult<-function(statsReg, method, outputDir){
-        # make a data frame which is added to 'result.csv'
-        df <- data.frame( method = method,
-                          RMSE   = statsReg$RMSE,
-                          Acc    = statsReg$Accuracy,
-                          Delta  = statsReg$Worst,
-                          Af     = statsReg$Af,
-                          Bf     = statsReg$Bf,
-                          k      = statsReg$bestK )
-
-        #print( df )
-
-        # Define filepath : Modify outputDir if required
-        filepath <- NULL
-        if (substr(outputDir, nchar(outputDir), nchar(outputDir) ) != "/" ) {
-                outputDir <- paste0(outputDir, "/")
-                filepath  <- paste0(outputDir, "result.csv")
-        } else {
-                filepath  <- paste0(outputDir, "result.csv")
-        }
-
-        # Create 'result.csv'
-        if ( !file.exists( filepath ) ) {
-                # If 'result.csv' does not exist, newly create
-                cat( "\nNOTE : 'result.csv' does not exist so it's newly created.\n" )
-                write.table( df, file = filepath, quote = FALSE, row.names = FALSE, col.names = TRUE, sep = "," )
-        } else {
-                # If 'result.csv' exists, add 'df' into 'result.csv'.
-                filedata <- read.table( filepath, header = TRUE, sep = "," ) # Get current 'result.csv' data
-                filedata <- as.data.frame( filedata ) # Change it into a data frame.
-                newdata  <- rbind( filedata, df ) # Bind 'df' with current 'result.csv' data
-                # Then, update 'result.csv' containing 'df' now!
-                write.table( newdata, file = filepath, append = FALSE, quote = FALSE, row.names = FALSE, col.names = TRUE, sep = "," )
-        }
-
+  # make a data frame which is added to 'result.csv'
+  df <- data.frame( method = method,
+                    RMSE   = statsReg$RMSE,
+                    Acc    = statsReg$Accuracy,
+                    Delta  = statsReg$Worst,
+                    Af     = statsReg$Af,
+                    Bf     = statsReg$Bf,
+                    k      = statsReg$bestK )
+  
+  #print( df )
+  
+  # Define filepath : Modify outputDir if required
+  filepath <- NULL
+  if (substr(outputDir, nchar(outputDir), nchar(outputDir) ) != "/" ) {
+    outputDir <- paste0(outputDir, "/")
+    filepath  <- paste0(outputDir, "result.csv")
+  } else {
+    filepath  <- paste0(outputDir, "result.csv")
+  }
+  
+  # Create 'result.csv'
+  if ( !file.exists( filepath ) ) {
+    # If 'result.csv' does not exist, newly create
+    cat( "\nNOTE : 'result.csv' does not exist so it's newly created.\n" )
+    write.table( df, file = filepath, quote = FALSE, row.names = FALSE, col.names = TRUE, sep = "," )
+  } else {
+    # If 'result.csv' exists, add 'df' into 'result.csv'.
+    filedata <- read.table( filepath, header = TRUE, sep = "," ) # Get current 'result.csv' data
+    filedata <- as.data.frame( filedata ) # Change it into a data frame.
+    newdata  <- rbind( filedata, df ) # Bind 'df' with current 'result.csv' data
+    # Then, update 'result.csv' containing 'df' now!
+    write.table( newdata, file = filepath, append = FALSE, quote = FALSE, row.names = FALSE, col.names = TRUE, sep = "," )
+  }
+  
 }

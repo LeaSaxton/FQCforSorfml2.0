@@ -17,11 +17,13 @@
 
 XGBoost.run <- function(regressionParameterList){
         cat('run.XGBoost \n')
-
-        preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
-        regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
-        dataSet <- regressionParameterList$dataSet
-
+        if (regressionParameterList$pretreatment == "raw") {
+            dataSet <- regressionParameterList$dataSet
+        }else{
+            preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
+            regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
+            dataSet <- regressionParameterList$dataSet
+        }
         set.seed(90)
         trainIndex <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,
                                           list = FALSE, times = 1)

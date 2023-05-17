@@ -32,6 +32,7 @@ randomForest.run <- function(regressionParameterList){
         dataSet_removed <- regressionParameterList$dataSet
         dataSet_TVC     <- data.frame( TVC = dataSet_removed$TVC ) # ;cat( str( dataSet_removed ) )
         dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ] # ;cat( str( dataSet_TVC ) )
+        #Modified by Léa Saxton : 
         if (regressionParameterList$pretreatment == "raw") {
           dataSet <- cbind(dataSet_removed, dataSet_TVC)
         } else {

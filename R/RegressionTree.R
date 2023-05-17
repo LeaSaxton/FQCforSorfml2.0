@@ -76,11 +76,13 @@ regressionTree.run <- function(regressionParameterList){
         cat(regressionParameterList$pretreatment, '\n')
         # pretreatment method is overriden to no_pretreatment in case it has been set by user
         # there is no need for data pretreatment  before regression tree
-        preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
-        regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
-        dataSet <- regressionParameterList$dataSet
-        cat(dataSet)
-
+        if(regressionParameterList$pretreatment %in% c("raw", "meam")){
+          dataSet <- regressionParameterList$dataSet
+        }else{
+          preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
+          regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
+          dataSet <- regressionParameterList$dataSet
+        }
         set.seed(1821)
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,
                                               list = FALSE, times = regressionParameterList$numberOfIterations)
