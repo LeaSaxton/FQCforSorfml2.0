@@ -128,7 +128,6 @@ The general structure of the output directory and files are below:
 -    `<PlatformName>_<BacterialName>_<MLmodelName>.rda` : RDA data containing the model information which aqcuired the lowest RMSE throughout the iterations.
 -    `<PlatformName>_<BacterialName>_<MLmodelName>.txt` : Text data containing the lowest RMSE in the ML model.
 
-**For the moment, the PLS, NN and RT (for the latest only for "no-pretreatment" and "mean-center" scaling) machine learning algorithms are not working**
 # Accessing help
 
 To access help pages for any of the functions or built-in data provided by FoodQualityController, prefix the name of the function or data set with a question mark, e.g. to get additional information on the `assess.quality` function, type the following in R:
@@ -136,3 +135,4 @@ To access help pages for any of the functions or built-in data provided by FoodQ
 ```{r}
 ?assess.quality
 ```
+**For the moment, the PLS, NN and RT (for the latest only for "no-pretreatment" and "mean-center" scaling) machine learning algorithms are not working**
