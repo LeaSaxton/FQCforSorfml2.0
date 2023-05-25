@@ -135,3 +135,4 @@ To access help pages for any of the functions or built-in data provided by FoodQ
 ```{r}
 ?assess.quality
 ```
+**For the moment, the PLS, NN and RT (for the latest only for "no-pretreatment" and "mean-center" scaling) machine learning algorithms are not working**
