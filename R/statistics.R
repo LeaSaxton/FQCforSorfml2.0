@@ -36,6 +36,11 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
                 RmseListForMLM <- unlist(lapply(platformPerformanceResult$mlmPerformanceResults, function(x) x$RMSE))
                 RSquaredListForMLM <- unlist(lapply(platformPerformanceResult$mlmPerformanceResults, function(x) x$RSquare))
                 Rmsedf <- cbind(Rmsedf, RmseListForMLM)
+                RSquaredListForMLM <- na.omit(RSquaredListForMLM)
+                print("RSquaredListForMLM")
+                print(RSquaredListForMLM)
+                print("RSquaredf after cbind")
+                print(RSquaredf)
                 if(nrow(RSquaredf) == 0){
                         RSquaredf <- cbind(RSquaredListForMLM)
                 }
@@ -88,6 +93,13 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
         RSquaredf <- format(RSquaredf, nsmall = 4)
         RSquaredf[nrow(RSquaredf), ncol(RSquaredf)] <- ""
         RSquaredf <- RSquaredf[, -1]
+        print("dim Rmseds")
+        print(dim(Rmsedf))
+        print("dim RSquaredf")
+        print(dim(RSquaredf))
+        print("Rmsedf")
+        print(Rmsedf)
+        print("Rsquaredf")
         print(RSquaredf)
 
 

@@ -109,6 +109,13 @@ regularizedRegression.run <- function(regressionParameterList){
 
         # Modified by Shintaro Kinoshita : Make "temp" dir to save RDS files
         name_path <- regressionParameterList$outputDir
+        # Modified by Lea Saxton : Extract the desired part of the path and define a new path to save the models
+        extracted_path <- sub("/analysis/.*", "", name_path)
+        # Create a new parameter with the name of the folder where the models will be saved
+        folder_models <- "models"
+        # Changing the path 
+        name_path <- file.path(extracted_path, folder_models)
+        cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
                 name_path <- paste0( name_path, "temp" )
         } else {

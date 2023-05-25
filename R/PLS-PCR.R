@@ -62,17 +62,16 @@ pls.pcr.run<- function(regressionParameterList){
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 testSet <- dataSet[-trainIndexList[,i],]
-
+                if (nrow(trainSet) > 0) {
                 # Create model using PCR or PLS
-                if (regressionParameterList$method=="PCR"){
-                        modelFit <- pcr(TVC~., data=trainSet)
-                }else if (regressionParameterList$method=="PLS"){
-                        modelFit <- plsr(TVC ~ . , data=trainSet, scale=TRUE, validation="CV")
+                  if (regressionParameterList$method=="PCR"){
+                          modelFit <- pcr(TVC~., data=trainSet)
+                  }else if (regressionParameterList$method=="PLS"){
+                          modelFit <- plsr(TVC ~ . , data=trainSet, scale=TRUE, validation="CV")
+                  }
                 }
-
                 # Using testSet pls or pcr model predicts TVC values
                 predictedValues <- predict(modelFit, testSet, ncomp=2)
-
                 # Performance metrics (RMSE and RSquare) are calculated by comparing the predicted and actual values
                 RMSE<- RMSE(testSet$TVC, predictedValues)
                 RSquare <- RSQUARE(testSet$TVC, predictedValues)
@@ -93,9 +92,15 @@ pls.pcr.run<- function(regressionParameterList){
                 #modelFit$call$formula <- as.character(modelFit$call$formula)
                 #all_models[[i]] <- modelFit
         }
-
         # Modified by Shintaro Kinoshita : Make "temp" dir to save RDS files
         name_path <- regressionParameterList$outputDir
+        # Modified by Lea Saxton : Extract the desired part of the path and define a new path to save the models
+        extracted_path <- sub("/analysis/.*", "", name_path)
+        # Create a new parameter with the name of the folder where the models will be saved
+        folder_models <- "models"
+        # Changing the path 
+        name_path <- file.path(extracted_path, folder_models)
+        cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
                 name_path <- paste0( name_path, "temp" )
         } else {
