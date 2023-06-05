@@ -26,13 +26,11 @@ neuralNetwork.run <- function(regressionParameterList){
         regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
         dataSet <- regressionParameterList$dataSet
         }
-        cat('Hello')
         set.seed(90)
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,
                                           list = FALSE, times = regressionParameterList$numberOfIterations)
 
         performanceResults <- vector(mode="list", length = regressionParameterList$numberOfIterations)
-        cat("Hello2")
         # Modified by Shintaro Kinoshita : List of models for RDS
         #all_models <- list()
 
@@ -42,16 +40,17 @@ neuralNetwork.run <- function(regressionParameterList){
 
         # Modified by Shintaro Kinoshita : Define the statistics regression list
         statsReg <- NULL
-        cat("Hello error might be below")
         for(i in 1:regressionParameterList$numberOfIterations) {
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 testSet <- dataSet[-trainIndexList[,i],]
-
+                print(trainSet)
+                cat("Hello Lea")
+                print(sum(is.na(trainSet)))
                 modelFit <- neuralnet(TVC ~ . ,
                                data = as.matrix(trainSet),
                                hidden=10, threshold=0.04, act.fct="tanh", linear.output=TRUE, stepmax=1e7)
-
+                cat("Hello Lea 2")
                 predictedValues <- predict(modelFit, as.matrix(testSet))
 
                 # Performance metrics (RMSE and RSquare) are calculated by comparing the predicted and actual values
@@ -71,8 +70,7 @@ neuralNetwork.run <- function(regressionParameterList){
                 # Modified by Shintaro Kinoshita : append model to the list
                 #all_models[[i]] <- modelFit
         }
-        cat("Hello3")
-        # Modified by Shintaro Kinoshita : Make "temp" dir to save RDS files
+        # Modified by Shintaro Kinoshita : Make "reg" dir to save RDS files
         name_path <- regressionParameterList$outputDir
         # Modified by Lea Saxton : Extract the desired part of the path and define a new path to save the models
         extracted_path <- sub("/analysis/.*", "", name_path)
@@ -82,15 +80,15 @@ neuralNetwork.run <- function(regressionParameterList){
         name_path <- file.path(extracted_path, folder_models)
         cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
-                name_path <- paste0( name_path, "temp" )
+                name_path <- paste0( name_path, "reg" )
         } else {
-                name_path <- paste0( name_path, "/temp" )
+                name_path <- paste0( name_path, "/reg" )
         }
         #cat( paste0( name_path, "\n" ) )
 
-        # Modified by Shintaro kinoshita : check if the "temp" file exists, if not, create
+        # Modified by Shintaro kinoshita : check if the "reg" file exists, if not, create
         if ( dir.exists( name_path ) == FALSE ) {
-                cat( "\n\nNOTE : The dir 'temp' does not exist so it was newly created.\n" )
+                cat( "\n\nNOTE : The dir 'reg' does not exist so it was newly created.\n" )
                 dir.create( name_path, showWarnings = FALSE )
         }
 

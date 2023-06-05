@@ -127,7 +127,7 @@ regressionTree.run <- function(regressionParameterList){
                 #all_models[[i]] <- modelTree
         }
 
-        # Modified by Shintaro Kinoshita : Make "temp" dir to save RDS files
+        # Modified by Shintaro Kinoshita : Make "reg" dir to save RDS files
         name_path <- regressionParameterList$outputDir
         # Modified by Lea Saxton : Extract the desired part of the path and define a new path to save the model
         extracted_path <- sub("/analysis/.*", "", name_path)
@@ -137,15 +137,15 @@ regressionTree.run <- function(regressionParameterList){
         name_path <- file.path(extracted_path, folder_models)
         cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
-                name_path <- paste0( name_path, "temp" )
+                name_path <- paste0( name_path, "reg" )
         } else {
-                name_path <- paste0( name_path, "/temp" )
+                name_path <- paste0( name_path, "/reg" )
         }
         #cat( paste0( name_path, "\n" ) )
 
-        # Modified by Shintaro kinoshita : check if the "temp" file exists, if not, create
+        # Modified by Shintaro kinoshita : check if the "reg" file exists, if not, create
         if ( dir.exists( name_path ) == FALSE ) {
-                cat( "\n\nNOTE : The dir 'temp' does not exist so it was newly created.\n" )
+                cat( "\n\nNOTE : The dir 'reg' does not exist so it was newly created.\n" )
                 dir.create( name_path, showWarnings = FALSE )
         }
 
