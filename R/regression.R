@@ -20,16 +20,16 @@ run.analysis <- function(configParams){
 
         # Initialization of platformPerformanceResults
         platformPerformanceResults <- vector(mode="list", length = length(platformList))
-
        # platformPerformanceResults <- foreach(i=seq(1:length(platformList))) %dopar% {
         for(i in 1:length(platformList)) {
                 # Modified by Shintaro Kinoshita : add metaList[i] and bacterialNameList[i]
                 # arguments to readDataset function
                 dataSet = readDataset(fileList[i], metaList[i], bacterialNameList[i])
+                cat("Hello the error is in between \n")
+                print(bacterialNameList)
                 bestRMSE <- 100000
                 bestRSquare <- 0
                 bestMLM <- ""
-
                 # Modified by Shintaro Kinoshita : add bacterial name list
                 if(configParams$createPCAPlots == TRUE)
                         generatePCAPlots(dataSet, configParams$outputDirectory, platformList[i], bacterialNameList[i])
@@ -88,7 +88,7 @@ run.analysis <- function(configParams){
                         mlmPerformanceResults[[j]]  <- mlmPerformanceResult
                 }
 
-
+                
                 # Best machine learning model for the platform is printed
                 cat("For ", platformList[i], " best model is ", bestMLM , " with RMSE: " , bestRMSE,  " and R-squared: ", bestRSquare, "\n")
 
@@ -99,7 +99,6 @@ run.analysis <- function(configParams){
                                                         "mlmPerformanceResults" = mlmPerformanceResults )
 
         }
-
         # RSquare_Statistics.csv and RMSE_Statistics.csv files are created if createStatisticsFile parameter is set as TRUE in config file
         generateStatistics(platformPerformanceResults, configParams$outputDirectory, configParams$createStatisticsFile)
 

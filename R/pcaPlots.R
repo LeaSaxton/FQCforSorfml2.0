@@ -22,7 +22,8 @@ generatePCAPlots <- function (dataSet, outputDir, platform, bacteria) {
         # scaled <- mncn(dataSet[,-ncol(dataSet)])
         # scaled$TVC <- dataSet$TVC
         # dataSet<-scaled
-
+        # Remove rows with infinite or missing values
+        dataSet <- dataSet[complete.cases(dataSet), ]
         sam <- row.names(dataSet)
         varb <- colnames(dataSet)
         X <- as.matrix(dataSet)

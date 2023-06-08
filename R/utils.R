@@ -218,7 +218,7 @@ readConfigFile<-function(configFile){
 
 # Modified by Shintaro Kinoshita : add "metaFileName" and "bacterialName" arguments to "readData" function
 readDataset<-function(dataFileName, metaFileName, bacterialName){
-  
+  cat("readDataSet function is starting \n")
   fileExtension <- tolower(file_ext(dataFileName))
   
   # According to file extension different method is used to read data
@@ -226,27 +226,69 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
     dataSet <- openxlsx::read.xlsx(dataFileName, sheet = 1, rowNames=TRUE, colNames = TRUE,)
   if(fileExtension == "csv")
     dataSet <- as.data.frame(read.csv(dataFileName, sep=",", header=TRUE, row.names=1))
-  
   emptyColumns <- colSums(is.na(dataSet) | dataSet == "") == nrow(dataSet)
   dataSet <- dataSet[, !emptyColumns]
-  
   dataSet <- na.omit(dataSet)
   
   colnames(dataSet) <- gsub("X","", colnames(dataSet))
+  print(dim(dataSet))
   #colnames(dataSet)=as.character(colnames(dataSet))
+  
+  # Modified by Lea Saxton : Read metadata
+  rawMetaData <- read.csv( metaFileName, header = TRUE )
+  # Check if column names contain "Sample", "sample", "Samples", or "samples"
+  if ("Sample" %in% colnames(rawMetaData) ||
+      "sample" %in% colnames(rawMetaData) ||
+      "Samples" %in% colnames(rawMetaData) ||
+      "samples" %in% colnames(rawMetaData)) {
+    
+    # Identify the column name to use as row names
+    sampleColumn <- intersect(c("Sample", "sample", "Samples", "samples"), colnames(rawMetaData))
+    
+    # Make the sampleColumn the row names
+    rownames(rawMetaData) <- rawMetaData[[sampleColumn]]
+    
+    # Remove the sampleColumn from the data frame
+    rawMetaData <- rawMetaData[, -which(colnames(rawMetaData) %in% sampleColumn)]
+  }
+  
+  # Remove the last letter from row names in dataSet
+  row.names(dataSet) <- sub(".$", "", row.names(dataSet))
+  
+  # Remove the last letter from row names in rawMetaData
+  row.names(rawMetaData) <- sub(".$", "", row.names(rawMetaData))
+  
+
+  # Find common row names
+  common_rows <- intersect(row.names(dataSet), row.names(rawMetaData))
+  # Filter dataSet_removed to include only common rows
+  dataSet <- dataSet[row.names(dataSet) %in% common_rows, ]
+  
+  # Filter rawMetaData to include only common rows
+  rawMetaData <- rawMetaData[row.names(rawMetaData) %in% common_rows, ]
+  
+  # Combine the datasets using cbind
+  dataSet <- cbind(dataSet, rawMetaData)
+  
   
   #if(any(!is.na(as.numeric(colnames(dataSet)))))
   #colnames(dataSet)[colnames(dataSet)!="TVC"] <- paste0("a", colnames(dataSet),"")
   
   # Number of features is reduced by feature selection,
   # import in processing FTIR data
-  if(ncol(dataSet) > 200){
-    features<- selectFeatures(dataSet)
-    dataSet<-dataSet[,c(features,"TVC")] # PCA, CFC, STAA, MRS, Pseudomonas
+  print(bacterialName)
+  if (ncol(dataSet) > 200) {
+    cat("number Features > 200 \n")
+    features <- selectFeatures(dataSet, bacterialName)
+    if ("TVC" %in% colnames(dataSet)) {
+      cat("One column is TVC \n")
+      dataSet <- dataSet[, c(features,"TVC")]
+    } else {
+      cat("There is no TVC column \n")
+      dataSet <- dataSet[, c(features, bacterialName)]
+    }
   }
   
-  # Modified by Shintaro Kinoshita : Read metadata
-  rawMetaData <- read.csv( metaFileName, header = TRUE )
   
   # Modified by Shintaro Kinoshita : Check if the metadata contains the data named 'bacterialName'
   cat( paste0( "\nbacterialName : ", bacterialName, "\n" ) )
@@ -256,7 +298,7 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
     cat( paste0( "'", names( rawMetaData )[ length( rawMetaData ) ], "' in the metadata are used instead. \n\n" ) )
     bacterialName <- names( rawMetaData )[ length( rawMetaData ) ]
   }
-  
+
   # Modified by Shintaro Kinoshita : Combine Dataset and TVC data if not found
   if( !length( grep( bacterialName, names( dataSet ) ) ) > 0 && !is.null( metaFileName ) ) {
     metaData    <- data.frame( TVC = rawMetaData[ , bacterialName ] ) #; print( metaData )
@@ -265,6 +307,7 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
     cat( paste0( "NOTE : NO '", bacterialName, "' data found in the original data. the first ", min_nrow, " rows in the metadata were combined to the original dataset." ) )
   }
   
+
   #cat( "\n" )
   #print( dataSet )
   
@@ -315,18 +358,28 @@ createPerformanceStatistics <- function(performanceResults, regressionParameterL
 #' @examples new dataset with reduced number of features
 #' \dontrun{selectFeatures(dataSet)}
 
-selectFeatures<-function(dataSet){
-  
+selectFeatures <- function(dataSet, bacterialName) {
+  cat('selectFeatures function is starting \n')
+  cat("Dependent variable: ", bacterialName, "\n")
+  print(bacterialName)
+  # Check for missing data in the dependent variable
+  if (any(is.na(dataSet[[bacterialName]]))) {
+    cat("Missing data found in the dependent variable. Removing rows with missing values.")
+    dataSet <- dataSet[complete.cases(dataSet), ]
+  }
+
   # Perform Boruta search
-  # It uses Rnadomforest model behind,
+  # It uses Random Forest model behind,
   # search top-down and eliminates the irrelevant features step-by-step progressively.
-  boruta_output <- Boruta(TVC ~ ., data=na.omit(dataSet), doTrace=0)
+  boruta_output <- Boruta(as.formula(paste(bacterialName, "~ .")), data = na.omit(dataSet), doTrace = 0)
   
   boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
   
-  return(boruta_signif)
+  cat("Hello, the selectfeatures function is finished \n")
   
+  return(boruta_signif)
 }
+
 
 #' removeRedundantFeatures
 #' @description reduces the number of features in the dataset by

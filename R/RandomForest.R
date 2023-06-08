@@ -30,8 +30,28 @@ randomForest.run <- function(regressionParameterList){
         cat(regressionParameterList$pretreatment, '\n') # ;cat( str( regressionParameterList ) )
         # Modified by Shintaro Kinohita : 
         dataSet_removed <- regressionParameterList$dataSet
-        dataSet_TVC     <- data.frame( TVC = dataSet_removed$TVC ) # ;cat( str( dataSet_removed ) )
+        bacterialName <- regressionParameterList$bacterialName
+        # Create dataSet_TVC with the same row names as dataSet_removed
+        dataSet_TVC <- data.frame(TVC = dataSet_removed[[bacterialName]])
+        rownames(dataSet_TVC) <- row.names(dataSet_removed) # ;cat( str( dataSet_removed ) )
         dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ] # ;cat( str( dataSet_TVC ) )
+        # Modified by Lea Saxton : Ensuring the dataset does not containg NaN and missing values
+        dataSet_removed <- na.omit(dataSet_removed)
+        dataSet_TVC <- na.omit(dataSet_TVC)
+        # Iterate over each element in the list
+        for (i in seq_along(dataSet_removed)) {
+          if (is.numeric(dataSet_removed[[i]])) {
+            # Check for NaN values in numeric elements
+            dataSet_removed[[i]] <- dataSet_removed[[i]][!is.nan(dataSet_removed[[i]])]
+          }
+        }
+        # Find common row names
+        common_rows <- intersect(row.names(dataSet_removed), row.names(dataSet_TVC))
+        # Filter dataSet_removed to include only common rows
+        dataSet_removed <- dataSet_removed[row.names(dataSet_removed) %in% common_rows, ]
+        
+        # Combine the datasets using cbind
+        dataSet <- cbind(dataSet_removed, dataSet_TVC)
         #Modified by Léa Saxton : 
         if (regressionParameterList$pretreatment == "raw") {
           dataSet <- cbind(dataSet_removed, dataSet_TVC)
@@ -51,7 +71,7 @@ randomForest.run <- function(regressionParameterList){
 
         # Modified by Shintaro Kinoshita : List of models for RDS
         #all_models <- list()
-
+        cat ("error might be here")
         # Modified by Lea Saxton : Define variants for the best models
         bestRMSE  <- Inf
         bestModel <- NULL
@@ -100,7 +120,6 @@ randomForest.run <- function(regressionParameterList){
                 #modelFit$call$formula <- as.character(modelFit$call$formula)
                 #all_models[[i]] <- modelFit
         }
-
         # Modified by Shintaro Kinoshita : Make "reg" dir to save RDS files
         name_path <- regressionParameterList$outputDir
         # Modified by Lea Saxton : Extract the desired part of the path and define a new path to save the models
