@@ -20,7 +20,9 @@ run.analysis <- function(configParams){
 
         # Initialization of platformPerformanceResults
         platformPerformanceResults <- vector(mode="list", length = length(platformList))
+        
        # platformPerformanceResults <- foreach(i=seq(1:length(platformList))) %dopar% {
+        bacterialNameList <- bacterialNameList[!is.na(bacterialNameList)]
         for(i in 1:length(platformList)) {
                 # Modified by Shintaro Kinoshita : add metaList[i] and bacterialNameList[i]
                 # arguments to readDataset function

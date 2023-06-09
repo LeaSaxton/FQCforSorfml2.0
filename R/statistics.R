@@ -80,6 +80,15 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
         Rmsedf_ForHeatMap <-head(Rmsedf_ForHeatMap[, -ncol(Rmsedf_ForHeatMap), drop=FALSE], -1)
         rownames(Rmsedf_ForHeatMap) <- mlmLongDescList[Rmsedf_ForHeatMap$methodName]
         Rmsedf_ForHeatMap <- Rmsedf_ForHeatMap[, -1]
+        cat("Rmsedf_heatmap before rbind if needed : \n")
+        print(Rmsedf_ForHeatMap)
+        
+        # Assuming the dataframe has one row
+        if (nrow(Rmsedf_ForHeatMap) == 1) {
+          Rmsedf_ForHeatMap <- rbind(Rmsedf_ForHeatMap, Rmsedf_ForHeatMap)
+        }
+        
+        cat("Rmsedf_heatmap after rbind if needed : \n")
         print(Rmsedf_ForHeatMap)
 
         cat("\n\nR-squared FOR ML METHODS\n\n")
@@ -93,10 +102,6 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
         RSquaredf <- format(RSquaredf, nsmall = 4)
         RSquaredf[nrow(RSquaredf), ncol(RSquaredf)] <- ""
         RSquaredf <- RSquaredf[, -1]
-        print("dim Rmseds")
-        print(dim(Rmsedf))
-        print("dim RSquaredf")
-        print(dim(RSquaredf))
         print("Rmsedf")
         print(Rmsedf)
         print("Rsquaredf")
@@ -110,7 +115,13 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
                 RSquareFile <- paste0(outputDir, "/RSquare_Statistics.csv")
                 write.csv(RSquaredf, file = RSquareFile)
         }
-
+        cat("About to generate heatmaps \n")
+        if (!is.null(Rmsedf_ForHeatMap)) {
+          print("Rmsedf_ForHeatMap:")
+          print(Rmsedf_ForHeatMap)
+        } else {
+          print("Rmsedf_ForHeatMap is NULL")
+        }
         if( !is.null(nrow(Rmsedf_ForHeatMap)) && !is.null(ncol(Rmsedf_ForHeatMap) ) ){
                 # Plot best prediction method for each technique and medium according to rmse
                 pdf(paste0(outputDir, "/Heatmap_ML_methods.pdf"))

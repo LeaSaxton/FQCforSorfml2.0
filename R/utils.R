@@ -231,7 +231,7 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
   dataSet <- na.omit(dataSet)
   
   colnames(dataSet) <- gsub("X","", colnames(dataSet))
-  print(dim(dataSet))
+
   #colnames(dataSet)=as.character(colnames(dataSet))
   
   # Modified by Lea Saxton : Read metadata
@@ -361,7 +361,6 @@ createPerformanceStatistics <- function(performanceResults, regressionParameterL
 selectFeatures <- function(dataSet, bacterialName) {
   cat('selectFeatures function is starting \n')
   cat("Dependent variable: ", bacterialName, "\n")
-  print(bacterialName)
   # Check for missing data in the dependent variable
   if (any(is.na(dataSet[[bacterialName]]))) {
     cat("Missing data found in the dependent variable. Removing rows with missing values.")
