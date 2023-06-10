@@ -27,7 +27,6 @@ run.analysis <- function(configParams){
                 # Modified by Shintaro Kinoshita : add metaList[i] and bacterialNameList[i]
                 # arguments to readDataset function
                 dataSet = readDataset(fileList[i], metaList[i], bacterialNameList[i])
-                cat("Hello the error is in between \n")
                 print(bacterialNameList)
                 bestRMSE <- 100000
                 bestRSquare <- 0

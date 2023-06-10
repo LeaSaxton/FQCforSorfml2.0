@@ -65,31 +65,39 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
         colnames(Rmsedf) <- c("methodName", platformList)
         #print( "Rmsedf_03:" ); print( Rmsedf )
 
-        Rmsedf$ML_Means <- round(rowMeans(Rmsedf[2:ncol(Rmsedf)], na.rm=TRUE),4)
-        Rmsedf <- rbind(Rmsedf, c(NA, round(colMeans(Rmsedf[2:ncol(Rmsedf)], na.rm=TRUE),4)))
+        Rmsedf$ML_Means <- round(rowMeans(Rmsedf[2:ncol(Rmsedf)], na.rm=TRUE), 4)
+        Rmsedf$ML_Means <- round(rowMeans(Rmsedf[2:ncol(Rmsedf)], na.rm = TRUE), 4)
+        Rmsedf <- rbind(Rmsedf, c(NA, round(colMeans(Rmsedf[2:ncol(Rmsedf)], na.rm = TRUE), 4)))
         rownames(Rmsedf)[nrow(Rmsedf)] <- "Platform_Means"
-        # if the same ML method is called more than once, Rmsedf contains same ML method more than once
-        # (same ML method could called with different data pretreatment method or number of iteration)
-        # Rmsedf_ForHeatMap is defined below which contains unique ML methods with minimum RMSE for each.
-        # heatmap should give unique ML with the best performance
+        
+        # Calculate Rmsedf_ForHeatMap with unique ML methods and minimum RMSE for each
         Rmsedf_ForHeatMap <- as.data.frame(Rmsedf %>% group_by(methodName) %>% filter(ML_Means == min(ML_Means)))
         Rmsedf <- Rmsedf[, -1]
         Rmsedf <- format(Rmsedf, nsmall = 4)
         Rmsedf[nrow(Rmsedf), ncol(Rmsedf)] <- ""
         print(Rmsedf)
-        Rmsedf_ForHeatMap <-head(Rmsedf_ForHeatMap[, -ncol(Rmsedf_ForHeatMap), drop=FALSE], -1)
+        Rmsedf_ForHeatMap <- head(Rmsedf_ForHeatMap[, -ncol(Rmsedf_ForHeatMap), drop = FALSE], -1)
         rownames(Rmsedf_ForHeatMap) <- mlmLongDescList[Rmsedf_ForHeatMap$methodName]
         Rmsedf_ForHeatMap <- Rmsedf_ForHeatMap[, -1]
-        cat("Rmsedf_heatmap before rbind if needed : \n")
-        print(Rmsedf_ForHeatMap)
         
-        # Assuming the dataframe has one row
-        if (nrow(Rmsedf_ForHeatMap) == 1) {
-          Rmsedf_ForHeatMap <- rbind(Rmsedf_ForHeatMap, Rmsedf_ForHeatMap)
-        }
+        cat("Rmsedf_heatmap before rbind if needed:\n")
+        print(Rmsedf_ForHeatMap)
+        dim(Rmsedf_ForHeatMap)
+        # Check if Rmsedf_ForHeatMap has only one row
+        #if (nrow(Rmsedf_ForHeatMap) == 1) {
+          #Rmsedf_ForHeatMap <- rbind(Rmsedf_ForHeatMap, Rmsedf_ForHeatMap)
+          #rownames(Rmsedf_ForHeatMap)[2] <- paste(rownames(Rmsedf_ForHeatMap)[2], "Duplicate")
+        #}
+        
+        # Check if Rmsedf_ForHeatMap is empty
+        #if ((nrow(Rmsedf_ForHeatMap) == 0) && (ncol()) {
+          #Rmsedf_ForHeatMap <- rbind(Rmsedf_ForHeatMap, Rmsedf_ForHeatMap)
+          #rownames(Rmsedf_ForHeatMap)[1] <- "Duplicate"
+        #}
         
         cat("Rmsedf_heatmap after rbind if needed : \n")
         print(Rmsedf_ForHeatMap)
+        print(dim(Rmsedf_ForHeatMap))
 
         cat("\n\nR-squared FOR ML METHODS\n\n")
         RSquaredf<- as.data.frame(RSquaredf)
@@ -122,7 +130,7 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
         } else {
           print("Rmsedf_ForHeatMap is NULL")
         }
-        if( !is.null(nrow(Rmsedf_ForHeatMap)) && !is.null(ncol(Rmsedf_ForHeatMap) ) ){
+        if (!is.null(nrow(Rmsedf_ForHeatMap)) && !is.null(ncol(Rmsedf_ForHeatMap)) && nrow(Rmsedf_ForHeatMap) >= 2 && ncol(Rmsedf_ForHeatMap) >= 2){
                 # Plot best prediction method for each technique and medium according to rmse
                 pdf(paste0(outputDir, "/Heatmap_ML_methods.pdf"))
                 par(c(5.1,4.1,4.1,2.1))
