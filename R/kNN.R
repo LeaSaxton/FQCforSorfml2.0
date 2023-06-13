@@ -35,18 +35,26 @@ knn.run <- function(regressionParameterList){
         bacterialName <- regressionParameterList$bacterialName
         # Modified by Lea Saxton : Ensuring the dataset does not containg NaN and missing values
         dataSet_removed <- na.omit(dataSet_removed)
+        emptyColumns <- colSums(is.na(dataSet_removed) | dataSet_removed == "") == nrow(dataSet_removed)
+        dataSet_removed <- dataSet_removed[, !emptyColumns]
         # Iterate over each element in the list
-        
+        # Check if column name is "NA" and remove it if exists
+        if ("NA" %in% colnames(dataSet_removed)) {
+          dataSet_removed <- dataSet_removed[, colnames(dataSet_removed) != "NA"]
+        }
         for (i in seq_along(dataSet_removed)) {
           if (is.numeric(dataSet_removed[[i]])) {
             # Check for NaN values in numeric elements
             dataSet_removed[[i]] <- dataSet_removed[[i]][!is.nan(dataSet_removed[[i]])]
           }
         }
-        dataSet_TVC     <- data.frame( TVC = dataSet_removed[[bacterialName]] )
-        dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ]
-        rownames(dataSet_TVC) <- row.names(dataSet_removed) # ;cat( str( dataSet_removed ) )
-        dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ] # ;cat( str( dataSet_TVC ) )
+        if (bacterialName %in% colnames(dataSet_removed)) {
+          dataSet_TVC <- data.frame(TVC = dataSet_removed[, bacterialName])
+          rownames(dataSet_TVC) <- row.names(dataSet_removed)
+          dataSet_removed <- dataSet_removed[, !(colnames(dataSet_removed) == bacterialName)]
+        } else {
+          cat("The bacterialName column does not exist in the dataSet_removed data frame.\n")
+        }
         # Find common row names
         common_rows <- intersect(row.names(dataSet_removed), row.names(dataSet_TVC))
         # Filter dataSet_removed to include only common rows
@@ -78,26 +86,64 @@ knn.run <- function(regressionParameterList){
 
         # Modified by Shintaro Kinoshita : Define the statistics regression list
         statsReg <- NULL #statsReg <- statsRegression( predictedValues, testSet$TVC )
-
         for(i in 1:regressionParameterList$numberOfIterations) {
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 testSet <- dataSet[-trainIndexList[,i],]
-
+                
+                num_names <- 10
+                
+                last_column_names <- tail(colnames(testSet), num_names)
+                print(last_column_names)
+                
+                # Check if there are two columns named "TVC" in trainSet
+                if (sum(colnames(trainSet) == "TVC") == 2) {
+                  cat("there are 2 columns 'TVC' in trainSet \n")
+                  # Remove one of the "TVC" columns
+                  trainSet <- trainSet[, -which(colnames(trainSet) == "TVC")[1]]
+                }
+                
+                # Check if there are two columns named "TVC" in testSet
+                if (sum(colnames(testSet) == "TVC") == 2) {
+                  cat("there are 2 columns 'TVC' in testSet \n")
+                  # Remove one of the "TVC" columns
+                  testSet <- testSet[, -which(colnames(testSet) == "TVC")[1]]
+                }
                 # Before training resampling method is set as 5 fold cross validation
                 trControl <- trainControl(method = "cv", number = 5)
-
                 # model is trained with trainSet using 5 fold cross validation
                 # as tuneGrid parameter possible k values is supplied,  train function finds the optimum k-value.
                 modelFit <- caret::train(TVC ~ . , method='knn', data=trainSet,
                                          tuneGrid=expand.grid(k=1:maxK), trControl=trControl)
-
                 # list of bestHyperParams is created with best hyperparameters
                 bestHyperParams <- list("k"=modelFit$bestTune[1,1])
+                # Get column names of testSet and trainSet
+                testSet_columns <- colnames(testSet)
+                trainSet_columns <- colnames(trainSet)
+                
+                #print(testSet[1:10,1:10])
+                #print(trainSet[1:10,1:10])
+                #print(dim(testSet))
+                
+                # Display the last 10 rows of the last 10 columns
+                num_rows <- 10
+                num_cols <- 10
+                
+                last_rows <- tail(testSet, num_rows)
+                last_cols <- tail(testSet, num_cols)
+                print(last_rows[, tail(colnames(last_rows), num_cols)])
+                
+                last_rows2 <- tail(trainSet, num_rows)
+                last_cols2 <- tail(trainSet, num_cols)
+                print(last_rows2[, tail(colnames(last_rows2), num_cols)])
+                
+                cat("dim testSet: \n")
+                print(dim(testSet))
+                cat("dim trainSet: \n")
+                print(dim(trainSet))
 
                 # Using testSet knn model predicts TVC values
                 predictedValues <- predict(modelFit, testSet)
-
                 #cat( paste0( "\n\ntestSet     : ", str( testSet ), "\n" ) )
                 #cat( paste0( "testSet$TVC : ", str( testSet$TVC ), "\n" ) )
                 #cat( paste0( "is.null(testSet$TVC) : ", is.null( testSet$TVC ), "\n\n" ) )
@@ -120,7 +166,6 @@ knn.run <- function(regressionParameterList){
                 #modelFit$call$formula <- as.character(modelFit$call$formula)
                 #all_models[[i]] <- modelFit
         }
-
         # Modified by Shintaro Kinoshita : Make "reg" dir to save RDS files
         name_path <- regressionParameterList$outputDir
         # Modified by Lea Saxton : Extract the desired part of the path and define a new path to save the models
