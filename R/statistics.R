@@ -79,25 +79,6 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
         Rmsedf_ForHeatMap <- head(Rmsedf_ForHeatMap[, -ncol(Rmsedf_ForHeatMap), drop = FALSE], -1)
         rownames(Rmsedf_ForHeatMap) <- mlmLongDescList[Rmsedf_ForHeatMap$methodName]
         Rmsedf_ForHeatMap <- Rmsedf_ForHeatMap[, -1]
-        
-        cat("Rmsedf_heatmap before rbind if needed:\n")
-        print(Rmsedf_ForHeatMap)
-        dim(Rmsedf_ForHeatMap)
-        # Check if Rmsedf_ForHeatMap has only one row
-        #if (nrow(Rmsedf_ForHeatMap) == 1) {
-          #Rmsedf_ForHeatMap <- rbind(Rmsedf_ForHeatMap, Rmsedf_ForHeatMap)
-          #rownames(Rmsedf_ForHeatMap)[2] <- paste(rownames(Rmsedf_ForHeatMap)[2], "Duplicate")
-        #}
-        
-        # Check if Rmsedf_ForHeatMap is empty
-        #if ((nrow(Rmsedf_ForHeatMap) == 0) && (ncol()) {
-          #Rmsedf_ForHeatMap <- rbind(Rmsedf_ForHeatMap, Rmsedf_ForHeatMap)
-          #rownames(Rmsedf_ForHeatMap)[1] <- "Duplicate"
-        #}
-        
-        cat("Rmsedf_heatmap after rbind if needed : \n")
-        print(Rmsedf_ForHeatMap)
-        print(dim(Rmsedf_ForHeatMap))
 
         cat("\n\nR-squared FOR ML METHODS\n\n")
         RSquaredf<- as.data.frame(RSquaredf)

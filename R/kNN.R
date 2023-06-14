@@ -69,7 +69,7 @@ knn.run <- function(regressionParameterList){
           preProcValues <- preProcess(dataSet_removed, method = gePretreatmentVector(regressionParameterList$pretreatment))
           dataSet <- cbind(dataSet_removed, dataSet_TVC)
           regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
-          dataSet <- regressionParameterList$dataSet
+          #dataSet <- regressionParameterList$dataSet
         }
         set.seed(1821)
         # Partition data into training and test set
@@ -90,7 +90,7 @@ knn.run <- function(regressionParameterList){
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 testSet <- dataSet[-trainIndexList[,i],]
-                
+                #print the last ten columns of the dataset
                 num_names <- 10
                 
                 last_column_names <- tail(colnames(testSet), num_names)

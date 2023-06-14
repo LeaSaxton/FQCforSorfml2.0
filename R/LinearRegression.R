@@ -30,12 +30,27 @@ linearRegression.run <- function(regressionParameterList){
         cat(regressionParameterList$pretreatment)
         # In regression, it is often recommended to scale the features to make it easier to interpret the intercept term.
         # Scaling type is supplied by the user
-        if (regressionParameterList$pretreatment =="raw"){
-          dataSet <- regressionParameterList$dataSet
-        }else {
-          preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
+        bacterialName <- regressionParameterList$bacterialName
+        dataSet_removed <- regressionParameterList$dataSet
+        cat(regressionParameterList$pretreatment)
+        if (bacterialName %in% colnames(dataSet_removed)) {
+          dataSet_TVC <- data.frame(TVC = dataSet_removed[, bacterialName])
+          rownames(dataSet_TVC) <- row.names(dataSet_removed)
+          dataSet_removed <- dataSet_removed[, !(colnames(dataSet_removed) == bacterialName)]
+        } else {
+          cat("The bacterialName column does not exist in the dataSet_removed data frame.\n")
+        }
+        # Find common row names
+        common_rows <- intersect(row.names(dataSet_removed), row.names(dataSet_TVC))
+        # Filter dataSet_removed to include only common rows
+        dataSet_removed <- dataSet_removed[row.names(dataSet_removed) %in% common_rows, ]
+        if (regressionParameterList$pretreatment == "raw") {
+          dataSet <- cbind(dataSet_removed, dataSet_TVC)
+        }else{
+          preProcValues <- preProcess(dataSet_removed, method = gePretreatmentVector(regressionParameterList$pretreatment))
+          dataSet <- cbind(dataSet_removed, dataSet_TVC)
           regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
-          dataSet <- regressionParameterList$dataSet
+          #dataSet <- regressionParameterList$dataSet
         }
         set.seed(1821)
         # Partition data into training and test set
@@ -58,17 +73,32 @@ linearRegression.run <- function(regressionParameterList){
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 testSet <- dataSet[-trainIndexList[,i],]
+                # Check if there are two columns named "TVC" in trainSet
+                if (sum(colnames(trainSet) == "TVC") == 2) {
+                  cat("there are 2 columns 'TVC' in trainSet \n")
+                  # Remove one of the "TVC" columns
+                  trainSet <- trainSet[, -which(colnames(trainSet) == "TVC")[1]]
+                }
+                # Check if there are two columns named "TVC" in testSet
+                if (sum(colnames(testSet) == "TVC") == 2) {
+                  cat("there are 2 columns 'TVC' in testSet \n")
+                  # Remove one of the "TVC" columns
+                  testSet <- testSet[, -which(colnames(testSet) == "TVC")[1]]
+                }
 
                 modelFit <- lm(TVC~ . , data=trainSet)
 
                 # If Stepwise Regression selected
-                if (regressionParameterList$method == "SR"){
-
-                        direction <- regressionParameterList$direction
-                        cat("stepwise regression direction :", direction, "\n")
-                        modelFit <- step(modelFit, direction = c(direction) ) # perform stepwise feature selection
+                if (regressionParameterList$method == "SR") {
+                  direction <- regressionParameterList$direction
+                  cat("Stepwise regression direction:", direction, "\n")
+                  aic <- AIC(modelFit)
+                  if (!is.finite(aic)) {
+                    cat("AIC is -Inf, skipping stepwise regression \n")
+                  } else {
+                    modelFit <- step(modelFit, direction = c(direction)) # perform stepwise feature selection
+                  }
                 }
-
                 # Using testSet the model predicts TVC values
                 predictedValues <- predict(modelFit, testSet)
 

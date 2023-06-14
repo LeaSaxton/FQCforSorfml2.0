@@ -29,8 +29,18 @@
 svr.run <- function(regressionParameterList){
         cat('svr.run \n')
         dataSet_removed <- regressionParameterList$dataSet
-        dataSet_TVC     <- data.frame( TVC = dataSet_removed$TVC )
-        dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ]
+        bacterialName <- regressionParameterList$bacterialName
+        if (bacterialName %in% colnames(dataSet_removed)) {
+          dataSet_TVC <- data.frame(TVC = dataSet_removed[, bacterialName])
+          rownames(dataSet_TVC) <- row.names(dataSet_removed)
+          dataSet_removed <- dataSet_removed[, !(colnames(dataSet_removed) == bacterialName)]
+        } else {
+          cat("The bacterialName column does not exist in the dataSet_removed data frame.\n")
+        }
+        # Find common row names
+        common_rows <- intersect(row.names(dataSet_removed), row.names(dataSet_TVC))
+        # Filter dataSet_removed to include only common rows
+        dataSet_removed <- dataSet_removed[row.names(dataSet_removed) %in% common_rows, ]
         if (regressionParameterList$pretreatment == "raw") {
           dataSet <- cbind(dataSet_removed, dataSet_TVC)
         } else {
@@ -38,7 +48,7 @@ svr.run <- function(regressionParameterList){
         preProcValues <- preProcess(dataSet_removed, method = gePretreatmentVector(regressionParameterList$pretreatment))
         dataSet <- cbind(dataSet_removed, dataSet_TVC)
         regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
-        dataSet <- regressionParameterList$dataSet
+        #dataSet <- regressionParameterList$dataSet
         }
         set.seed(1821)
         # Partition data into training and test set
@@ -56,33 +66,39 @@ svr.run <- function(regressionParameterList){
 
         # Modified by Shintaro Kinoshita : Define the statistics regression list
         statsReg <- NULL
-
         for(i in 1:regressionParameterList$numberOfIterations) {
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 testSet <- dataSet[-trainIndexList[,i],]
-
+                # Check if there are two columns named "TVC" in trainSet
+                if (sum(colnames(trainSet) == "TVC") == 2) {
+                  cat("there are 2 columns 'TVC' in trainSet \n")
+                  # Remove one of the "TVC" columns
+                  trainSet <- trainSet[, -which(colnames(trainSet) == "TVC")[1]]
+                }
+                # Check if there are two columns named "TVC" in testSet
+                if (sum(colnames(testSet) == "TVC") == 2) {
+                  cat("there are 2 columns 'TVC' in testSet \n")
+                  # Remove one of the "TVC" columns
+                  testSet <- testSet[, -which(colnames(testSet) == "TVC")[1]]
+                }
                 # This generic function tunes hyperparameters of statistical methods using a grid search over supplied parameter ranges.
                 # tune function uses tune.control object created with fix sampling
                 tuningResult <- e1071::tune(svm, trainSet, trainSet$TVC,
                                             ranges = list(cost = defCostRange, gamma = defGammaRange, epsilon = defEpsilonRange),
                                             tunecontrol = tune.control(sampling = "fix")
                 )
-
                 # list of bestHyperParams is created with best hyperparameters
                 bestHyperParams <- list("cost" = tuningResult$best.parameters["cost"][1,1],
                                         "gamma" = tuningResult$best.parameters["gamma"][1,1],
                                         "epsilon" = tuningResult$best.parameters["epsilon"][1,1])
 
-
                 # svr model is created with the best hyperparameters for the current iteration
                 modelFit <- svm(trainSet, trainSet$TVC, type="eps-regression",
                                 kernel=regressionParameterList$kernel, cost=bestHyperParams$cost, gamma =bestHyperParams$gamma,
                                 epsilon =bestHyperParams$epsilon)
-
                 # Using testSet svr model predicts TVC values
                 predictedValues <- predict(modelFit , testSet)
-
                 # Performance metrics (RMSE and RSquare) are calculated by comparing the predicted and actual values
                 RMSE<- RMSE(testSet$TVC, predictedValues)
                 RSquare <- RSQUARE(testSet$TVC, predictedValues)
@@ -90,18 +106,20 @@ svr.run <- function(regressionParameterList){
                 # svr model with the performance metrics for the current iteration is appended to the svr model list
                 # svr model list contains all svr models for all iterations
                 performanceResults[[i]] <- list( "RMSE" = RMSE, "RSquare" = RSquare, "bestHyperParams" = bestHyperParams)
-
-                # Modified by Shintaro Kinoshita : Append model to the list
                 modelFit$call$formula <- as.character( modelFit$call$formula )
-                names_original        <- attr( modelFit$x.scale$"scaled:center", "names" )
-                names_scaled          <- gsub( 'X', '', names_original )
-                attr( modelFit$x.scale$"scaled:center", "names" ) <- names_scaled
+                if (!is.null(modelFit$x.scale$"scaled:center")) {
+                  names_original <- attr(modelFit$x.scale$"scaled:center", "names")
+                  names_scaled <- gsub('X', '', names_original)
+                  attr(modelFit$x.scale$"scaled:center", "names") <- names_scaled
+                }
                 #cat( str( attr( modelFit$x.scale$"scaled:center", "names" ) ) )
 
-                # Modified by Shintaro Kinoshita : Append model to the list
-                names_original <- attr( modelFit$x.scale$"scaled:scale", "names" )
-                names_scaled   <- gsub( 'X', '', names_original )
-                attr( modelFit$x.scale$"scaled:scale", "names" ) <- names_scaled
+
+                if (!is.null(modelFit$x.scale$"scaled:scale")) {
+                  names_original <- attr(modelFit$x.scale$"scaled:scale", "names")
+                  names_scaled <- gsub('X', '', names_original)
+                  attr(modelFit$x.scale$"scaled:scale", "names") <- names_scaled
+                }
                 #cat( str( attr( modelFit$x.scale$"scaled:center", "names" ) ) )
 
                                 # Check if this model has the best RMSE so far

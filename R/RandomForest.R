@@ -34,30 +34,30 @@ randomForest.run <- function(regressionParameterList){
         # Modified by Lea Saxton : Ensuring the dataset does not containg NaN and missing values
         dataSet_removed <- na.omit(dataSet_removed)
         # Iterate over each element in the list
-        
         for (i in seq_along(dataSet_removed)) {
           if (is.numeric(dataSet_removed[[i]])) {
             # Check for NaN values in numeric elements
             dataSet_removed[[i]] <- dataSet_removed[[i]][!is.nan(dataSet_removed[[i]])]
           }
         }
-        dataSet_TVC     <- data.frame( TVC = dataSet_removed[[bacterialName]] )
-        dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ]
+        # Create dataSet_TVC with the same row names as dataSet_removed
+        dataSet_TVC <- data.frame(TVC = dataSet_removed[[bacterialName]])
         rownames(dataSet_TVC) <- row.names(dataSet_removed) # ;cat( str( dataSet_removed ) )
         dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ] # ;cat( str( dataSet_TVC ) )
         # Find common row names
         common_rows <- intersect(row.names(dataSet_removed), row.names(dataSet_TVC))
         # Filter dataSet_removed to include only common rows
         dataSet_removed <- dataSet_removed[row.names(dataSet_removed) %in% common_rows, ]
+
         #Modified by Léa Saxton : 
         if (regressionParameterList$pretreatment == "raw") {
           dataSet <- cbind(dataSet_removed, dataSet_TVC)
         } else {
-        preProcValues <- preProcess(dataSet_removed, method = gePretreatmentVector(regressionParameterList$pretreatment))
-        #preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
-        dataSet <- cbind(dataSet_removed, dataSet_TVC) # ;cat( str( dataSet ) )
-        regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
-        dataSet <- regressionParameterList$dataSet
+          preProcValues <- preProcess(dataSet_removed, method = gePretreatmentVector(regressionParameterList$pretreatment))
+          #preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
+          dataSet <- cbind(dataSet_removed, dataSet_TVC) # ;cat( str( dataSet ) )
+          regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
+          #dataSet <- regressionParameterList$dataSet
         }
         performanceResults <- vector(mode="list", length = regressionParameterList$numberOfIterations)
 
