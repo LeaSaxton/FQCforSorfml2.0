@@ -164,13 +164,13 @@ regularizedRegression.run <- function(regressionParameterList){
         name_path_rds <- paste0( name_path, "/", name_file )
         #saveRDS( bestModel, file = name_file )
         save( bestModel, file = name_path_rds )
-
+        cat("hello \n")
         # Modified by Lea Saxton : Save the associated RMSE in a file
         name_file     <- paste0( name_platform, "_",name_bacteria,"_", name_model, ".txt" )
         name_path_txt <- paste0( name_path, "/", name_file )
         #write.table( bestRMSE, file = name_file, row.names = FALSE, col.names = FALSE )
         write.table( bestRMSE, file = name_path_txt, row.names = FALSE, col.names = FALSE )
-
+        cat("hello2 \n")
         # Modified by Shintaro Kinoshita : create RDS file
         #name_platform <- regressionParameterList$platform
         #name_model    <- regressionParameterList$method
@@ -178,11 +178,11 @@ regularizedRegression.run <- function(regressionParameterList){
         #name_path     <- paste0( "machineLearning/models/", name_file )
         #saveRDS( all_models, file = name_path )
         #saveRDS( all_models, file = name_file )
-
+        
         # Modified by Shinaro Kinoshita : Add statistics values into result.csv
         bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
-
+        cat("hello3 \n")
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, bacterialName)
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }

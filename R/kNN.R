@@ -92,17 +92,17 @@ knn.run <- function(regressionParameterList){
                 testSet <- dataSet[-trainIndexList[,i],]
                 #print the last ten columns of the dataset
                 num_names <- 10
-                
+
                 last_column_names <- tail(colnames(testSet), num_names)
                 print(last_column_names)
-                
+
                 # Check if there are two columns named "TVC" in trainSet
                 if (sum(colnames(trainSet) == "TVC") == 2) {
                   cat("there are 2 columns 'TVC' in trainSet \n")
                   # Remove one of the "TVC" columns
                   trainSet <- trainSet[, -which(colnames(trainSet) == "TVC")[1]]
                 }
-                
+
                 # Check if there are two columns named "TVC" in testSet
                 if (sum(colnames(testSet) == "TVC") == 2) {
                   cat("there are 2 columns 'TVC' in testSet \n")
@@ -120,23 +120,23 @@ knn.run <- function(regressionParameterList){
                 # Get column names of testSet and trainSet
                 testSet_columns <- colnames(testSet)
                 trainSet_columns <- colnames(trainSet)
-                
+
                 #print(testSet[1:10,1:10])
                 #print(trainSet[1:10,1:10])
                 #print(dim(testSet))
-                
+
                 # Display the last 10 rows of the last 10 columns
                 num_rows <- 10
                 num_cols <- 10
-                
+
                 last_rows <- tail(testSet, num_rows)
                 last_cols <- tail(testSet, num_cols)
                 print(last_rows[, tail(colnames(last_rows), num_cols)])
-                
+
                 last_rows2 <- tail(trainSet, num_rows)
                 last_cols2 <- tail(trainSet, num_cols)
                 print(last_rows2[, tail(colnames(last_rows2), num_cols)])
-                
+
                 cat("dim testSet: \n")
                 print(dim(testSet))
                 cat("dim trainSet: \n")
@@ -172,7 +172,7 @@ knn.run <- function(regressionParameterList){
         extracted_path <- sub("/analysis/.*", "", name_path)
         # Create a new parameter with the name of the folder where the models will be saved
         folder_models <- "models"
-        # Changing the path 
+        # Changing the path
         name_path <- file.path(extracted_path, folder_models)
         cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
@@ -187,7 +187,6 @@ knn.run <- function(regressionParameterList){
                 cat( "\n\nNOTE : The dir 'reg' does not exist so it was newly created.\n" )
                 dir.create( name_path, showWarnings = FALSE )
         }
-
         # Modified by Lea Saxton : Save the best model and its hyperparameters
         name_platform <- regressionParameterList$platform
         name_model    <- regressionParameterList$method
@@ -202,7 +201,6 @@ knn.run <- function(regressionParameterList){
         name_path_txt <- paste0( name_path, "/", name_file )
         #write.table( bestRMSE, file = name_file, row.names = FALSE, col.names = FALSE )
         write.table( bestRMSE, file = name_path_txt, row.names = FALSE, col.names = FALSE )
-
         # Modified by Shintaro Kinoshita : create RDS file
         #name_platform <- regressionParameterList$platform
         #name_model    <- regressionParameterList$method
@@ -215,7 +213,7 @@ knn.run <- function(regressionParameterList){
         # statsReg will contains 'k value'
         bestHyperParams <- data.frame( bestK = bestHyperParams$k ) # Make a dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, bacterialName)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }

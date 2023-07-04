@@ -101,7 +101,7 @@ run.analysis <- function(configParams){
 
         }
         # RSquare_Statistics.csv and RMSE_Statistics.csv files are created if createStatisticsFile parameter is set as TRUE in config file
-        generateStatistics(platformPerformanceResults, configParams$outputDirectory, configParams$createStatisticsFile)
+        generateStatistics(platformPerformanceResults, configParams$outputDirectory, configParams$createStatisticsFile, bacterialNameList)
 
         # Performance plots which shows RSquare and  RMSE means through number of iterations are created for each platform
         if(configParams$createPerformancePlots)
@@ -199,94 +199,75 @@ run.regression <- function(regressionParameterList){
 #' @examples
 #' \dontrun{makeRankRmse(outputDirectory)}
 
-makeRankRmse <- function( configParams ){
-        # Define output directory, platform name and bacterial name
-        outDir        <- configParams$outputDirectory            #; print( outDir )
-        platformName  <- configParams$platformList$platformName  #; print( platformName )
-        bacterialName <- configParams$platformList$bacterialName #; print( bacterialName )
-
-        # Define dirpath : Modify outputDir if required
-        dirpath <- NULL
-        if (substr(outDir, nchar(outDir), nchar(outDir) ) != "/" ) { dirpath <- paste0(outDir, "/") }
-        else                                                       { dirpath <- outDir              }
-
-        # create HEATMAP dir
-        dirpath_heatmaps <- paste0( dirpath, "HEATMAPS", "/" )
-        if ( !dir.exists( dirpath_heatmaps ) ) {
-                cat( "\nNOTE : The directory '", dirpath_heatmaps, "' does not exist.\n" )
-                cat( "       So it was newly created.\n\n" )
-                dir.create( dirpath_heatmaps )
-        }
-
-        # Get result data from 'result.csv'
-        dirpath_result <- paste0( dirpath, "result.csv" )
-        result_data    <- read.table( dirpath_result, header = TRUE, sep = "," )
-        result_data    <- as.data.frame( result_data )
-
-        # Sort ascendant in RMSE values
-        result_data <- result_data[ order( result_data$RMSE ), ] #; print( result_data )
-
-        # Create full path of rankRmse.csv
-        filepath_heatmaps <- paste0( dirpath_heatmaps, "rankRmse.csv" )
-
-        # Create "rank #" rows
-        ranks <- NULL
-        for ( i in 1 : nrow( result_data ) ) {
-                rank  <- paste0( "\"rank #", i, "\"" )
-                ranks <- append( ranks, rank )
-        }
-
-        # Make list one line, combined by ","
-        ranks <- paste( ranks, collapse = "," )#; cat( ranks )
-
-        # Save ranks line into "ranksRmse.csv"
-        cat( ranks, file = filepath_heatmaps, append = FALSE )
-        cat(  "\n", file = filepath_heatmaps, append = TRUE  )
-
-        #"\shortstack{Enose \\ Pseudomonads}"
-        # Make line contains platform and bacterial name data
-        plat_bact <- paste0( "\"\\shortstack{",
-                             platformName,
-                             " \\\\ ",
-                             bacterialName,
-                             "}\"" )
-        #cat( "\n" ); cat( plat_bact ); cat( "\n" )
-        
-        # Make Statistics line in each models
-        models <- NULL
-        models <- append( models, plat_bact )
-
-        for ( i in 1 : nrow( result_data ) ) {
-                if ( result_data[ i, 1 ] == "KNN" ) {
-                        model <- paste( paste0( "\"\\shortstack{",   result_data[ i, 1 ]        ), # model name
-                                        paste0( "(k=",               result_data[ i, 7 ], ")"   ), # k-value for KNN
-                                        paste0( "RMSE: ",            result_data[ i, 2 ]        ), # RMSE
-                                        paste0( "Acc: ",             result_data[ i, 3 ], "%"   ), # Accuracy
-                                        paste0( "$\\Delta_{max}$: ", result_data[ i, 4 ]        ), # Delta
-                                        paste0( "$A_{f}$: ",         result_data[ i, 5 ]        ), # Af
-                                        paste0( "$B_{f}$: ",         result_data[ i, 6 ], "}\"" ), # Bf
-                                        sep = " \\\\ " )
-                        models <- append( models, model )
-                } else {
-                        model <- paste( paste0( "\"\\shortstack{",   result_data[ i, 1 ]        ), # model name
-                                        paste0( "RMSE: ",            result_data[ i, 2 ]        ), # RMSE
-                                        paste0( "Acc: ",             result_data[ i, 3 ], "%"   ), # Accuracy
-                                        paste0( "$\\Delta_{max}$: ", result_data[ i, 4 ]        ), # Delta
-                                        paste0( "$A_{f}$: ",         result_data[ i, 5 ]        ), # Af
-                                        paste0( "$B_{f}$: ",         result_data[ i, 6 ], "}\"" ), # Bf
-                                        sep = " \\\\ " )
-                        models <- append( models, model )
-                }
-        }
-
-        # Make list one line, combined by ","
-        models <- paste( models, collapse = "," ) #; cat( models )
-
-        # Save models line into "ranksRmse.csv"
-        cat( models, file = filepath_heatmaps, append = TRUE )
-        cat(  "\n",  file = filepath_heatmaps, append = TRUE )
-
+#Modified by Lea Saxton : Changing the structure of the rankRmse.csv file
+makeRankRmse <- function(configParams) {
+  # Define output directory, platform name, and bacterial name
+  outDir <- configParams$outputDirectory
+  platformName <- configParams$platformList$platformName
+  bacterialName <- configParams$platformList$bacterialName
+  
+  # Define dirpath: Modify outputDir if required
+  dirpath <- ifelse(substr(outDir, nchar(outDir), nchar(outDir)) != "/", paste0(outDir, "/"), outDir)
+  
+  # Create HEATMAP dir
+  dirpath_heatmaps <- paste0(dirpath, "HEATMAPS", "/")
+  if (!dir.exists(dirpath_heatmaps)) {
+    cat("\nNOTE: The directory '", dirpath_heatmaps, "' does not exist.\n")
+    cat("      So it was newly created.\n\n")
+    dir.create(dirpath_heatmaps)
+  }
+  
+  # Get result data from 'result.csv'
+  dirpath_result <- paste0(dirpath, "result.csv")
+  result_data <- read.table(dirpath_result, header = TRUE, sep = ",")
+  result_data <- as.data.frame(result_data)
+  
+  # Sort ascending in RMSE values
+  result_data <- result_data[order(result_data$RMSE), ]
+  
+  # Create full path of rankRmse.csv
+  filepath_heatmaps <- paste0(dirpath_heatmaps, "rankRmse.csv")
+  
+  # Create lines for each rank
+  rank_lines <- character(nrow(result_data))
+  for (i in 1:nrow(result_data)) {
+    rank_line <- paste("rank", i,
+                       "\\",
+                       "\\shortstack{",
+                       platformName,
+                       " / ",
+                       bacterialName,
+                       "}",
+                       "\\",
+                       "RMSE: \\",
+                       result_data[i, 3],
+                       "\\",
+                       "Acc: \\",
+                       result_data[i, 4],
+                       "%",
+                       "\\",
+                       "$\\Delta_{max}$: \\",
+                       result_data[i, 5],
+                       "\\",
+                       "$A_{f}$: \\",
+                       result_data[i, 6],
+                       "\\",
+                       "$B_{f}$: \\",
+                       result_data[i, 7],
+                       "\\",
+                       "\"",
+                       sep = "")
+    rank_lines[i] <- rank_line
+  }
+  
+  # Save rank lines into "rankRmse.csv"
+  cat(paste(rank_lines, collapse = "\n"), file = filepath_heatmaps)
+  cat("\n", file = filepath_heatmaps, append = TRUE)
+  
+  # Print rank lines
+  print(rank_lines)
 }
+
 
 #' assess.quality
 #' @description assess.quality

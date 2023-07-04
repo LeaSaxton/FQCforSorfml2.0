@@ -139,7 +139,7 @@ svr.run <- function(regressionParameterList){
         extracted_path <- sub("/analysis/.*", "", name_path)
         # Create a new parameter with the name of the folder where the models will be saved
         folder_models <- "models"
-        # Changing the path 
+        # Changing the path
         name_path <- file.path(extracted_path, folder_models)
         cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
@@ -181,7 +181,7 @@ svr.run <- function(regressionParameterList){
         # Modified by Shinaro Kinoshita : Add statistics values into result.csv
         bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, bacterialName)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }

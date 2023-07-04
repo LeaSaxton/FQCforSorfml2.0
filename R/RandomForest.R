@@ -28,7 +28,7 @@
 randomForest.run <- function(regressionParameterList){
         cat('randomForest.run \n')
         cat(regressionParameterList$pretreatment, '\n') # ;cat( str( regressionParameterList ) )
-        # Modified by Shintaro Kinohita : 
+        # Modified by Shintaro Kinohita :
         dataSet_removed <- regressionParameterList$dataSet
         bacterialName <- regressionParameterList$bacterialName
         # Modified by Lea Saxton : Ensuring the dataset does not containg NaN and missing values
@@ -49,7 +49,7 @@ randomForest.run <- function(regressionParameterList){
         # Filter dataSet_removed to include only common rows
         dataSet_removed <- dataSet_removed[row.names(dataSet_removed) %in% common_rows, ]
 
-        #Modified by Léa Saxton : 
+        #Modified by Léa Saxton :
         if (regressionParameterList$pretreatment == "raw") {
           dataSet <- cbind(dataSet_removed, dataSet_TVC)
         } else {
@@ -68,7 +68,6 @@ randomForest.run <- function(regressionParameterList){
 
         # Modified by Shintaro Kinoshita : List of models for RDS
         #all_models <- list()
-        cat ("error might be here")
         # Modified by Lea Saxton : Define variants for the best models
         bestRMSE  <- Inf
         bestModel <- NULL
@@ -123,7 +122,7 @@ randomForest.run <- function(regressionParameterList){
         extracted_path <- sub("/analysis/.*", "", name_path)
         # Create a new parameter with the name of the folder where the models will be saved
         folder_models <- "models"
-        # Changing the path 
+        # Changing the path
         name_path <- file.path(extracted_path, folder_models)
         cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
@@ -166,7 +165,7 @@ randomForest.run <- function(regressionParameterList){
         # statsReg will contains 'k value'
         bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, bacterialName)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList ))
 }

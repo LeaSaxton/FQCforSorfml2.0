@@ -80,7 +80,7 @@ pls.pcr.run<- function(regressionParameterList){
                   # Remove one of the "TVC" columns
                   trainSet <- trainSet[, -which(colnames(trainSet) == "TVC")[1]]
                 }
-                
+
                 # Check if there are two columns named "TVC" in testSet
                 if (sum(colnames(testSet) == "TVC") == 2) {
                   cat("there are 2 columns 'TVC' in testSet \n")
@@ -125,7 +125,7 @@ pls.pcr.run<- function(regressionParameterList){
         extracted_path <- sub("/analysis/.*", "", name_path)
         # Create a new parameter with the name of the folder where the models will be saved
         folder_models <- "models"
-        # Changing the path 
+        # Changing the path
         name_path <- file.path(extracted_path, folder_models)
         cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
@@ -168,7 +168,6 @@ pls.pcr.run<- function(regressionParameterList){
         # statsReg will contains 'k value'
         bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
-
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, regressionParameterList$platformName, bacterialName )
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }

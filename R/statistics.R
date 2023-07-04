@@ -12,7 +12,7 @@
 #' @examples
 #' \dontrun{generateStatistics(platformPerformanceResults, outputDir, createStatisticsFile)}
 #'
-generateStatistics <- function(platformPerformanceResults, outputDir, createStatisticsFile){
+generateStatistics <- function(platformPerformanceResults, outputDir, createStatisticsFile, bacterialName){
 
         mlmLongDesc = list("NN" = "Neural Network", "SVR-Radial" = "SVR-Radial", "SVR-Polynomial" = "SVR-Polynomial",
                            "KNN" = "k-nearest neighbors", "RFR" = "Random Forest",
@@ -62,14 +62,14 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
         #print( "Rmsedf_02:" ); print( Rmsedf )
 
         #cat( rownames( Rmsedf ) )
-        colnames(Rmsedf) <- c("methodName", platformList)
+        colnames(Rmsedf) <- c("methodName", makeUniqueNames(platformList, bacterialName))
         #print( "Rmsedf_03:" ); print( Rmsedf )
 
         Rmsedf$ML_Means <- round(rowMeans(Rmsedf[2:ncol(Rmsedf)], na.rm=TRUE), 4)
         Rmsedf$ML_Means <- round(rowMeans(Rmsedf[2:ncol(Rmsedf)], na.rm = TRUE), 4)
         Rmsedf <- rbind(Rmsedf, c(NA, round(colMeans(Rmsedf[2:ncol(Rmsedf)], na.rm = TRUE), 4)))
         rownames(Rmsedf)[nrow(Rmsedf)] <- "Platform_Means"
-        
+
         # Calculate Rmsedf_ForHeatMap with unique ML methods and minimum RMSE for each
         Rmsedf_ForHeatMap <- as.data.frame(Rmsedf %>% group_by(methodName) %>% filter(ML_Means == min(ML_Means)))
         Rmsedf <- Rmsedf[, -1]
@@ -84,7 +84,7 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
         RSquaredf<- as.data.frame(RSquaredf)
         rownames(RSquaredf) <- methodNameWithDataPretreatment
         colnames(RSquaredf) <- platformList
-
+        cat("issue is here \n")
         RSquaredf$ML_Means <- round(rowMeans(RSquaredf, na.rm=TRUE),4)
         RSquaredf <- rbind(RSquaredf, round(colMeans(RSquaredf, na.rm=TRUE),4))
         rownames(RSquaredf)[nrow(RSquaredf)] <- "Platform_Means"

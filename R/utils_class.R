@@ -6,39 +6,25 @@ maxK <-20
 defNtree<-1000
 defNumberOfIterations <- 80
 defPercentageForTrainingSet <- 0.75
-defDirectionInStepwiseRegression <-"backward"
 
-#' RMSE
-#' @description generates RMSE performance metric from predicted and
+#' Accuracy
+#' @description generates Accuracy performance metric from predicted and
 #' actual values
-#' @author Ozlem Karadeniz \email{ozlem.karadeniz.283@@cranfield.ac.uk}
+#' @author Lea Saxton \email{lea.saxton.831@@cranfield.ac.uk}
 #' @param true
 #' @param predicted
-#' @return RMSE performance metric
+#' @return Accuracy performance metric
 #'
 #' @examples
-#' \dontrun{RMSE(true, predicted)}
+#' \dontrun{Accuracy(true, predicted)}
 
-RMSE <- function(true, predicted){
-  RMSE <- sqrt(mean((predicted - true)^2))
-  return(RMSE)
+Accuracy <- function(true, predicted) {
+  correct <- sum(true == predicted)
+  total <- length(true)
+  accuracy <- correct / total
+  return(accuracy)
 }
 
-#' RSQUARE
-#' @description generates RSQUARE performance metric from predicted and
-#' actual values
-#' @author Ozlem Karadeniz \email{ozlem.karadeniz.283@@cranfield.ac.uk}
-#' @param true
-#' @param predicted
-#' @return RSquare performance metric
-#'
-#' @examples
-#' \dontrun{RSQUARE(true, predicted)}
-
-RSQUARE <- function(true, predicted){
-  RSquare <- 1 - sum((predicted - true)^2) / sum((true - mean(true))^2)
-  return(RSquare)
-}
 
 #' evalMetrics
 #' @description generates RSQUARE and RMSE performance metric from predicted and
@@ -58,21 +44,21 @@ evalMetrics <- function(true, predicted) {
   
 }
 
-#' gePretreatmentVector
+#' gePretreatmentVectorClass
 #' @description converts string of pretreatment parameter to vector to be used
 #' in data scaling before machine learning modeling
-#' @author Ozlem Karadeniz \email{ozlem.karadeniz.283@@cranfield.ac.uk}
+#' @author Lea Saxton \email{lea.saxton.831@@cranfield.ac.uk}
 #' @param pretreatment pretreatment string object  provided by config file
 #' @return vector
 #'
 #' @examples
-#' \dontrun{gePretreatmentVector(pretreatment)}
+#' \dontrun{gePretreatmentVectorClass(pretreatment)}
 #'
-gePretreatmentVector <- function(pretreatment){
+getPretreatmentVectorClass <- function(pretreatment){
   # Pretreatment parameter is changed to vector as it is required by
   # caret::preProcess method.
-  if (pretreatment == "no_pretreatment"){
-    return(pretreatment)
+  if (pretreatment == "normalise"){
+    return(c("norma"))
   }
   if(pretreatment == "auto-scale"){
     return(c("center", "scale"))
@@ -83,24 +69,34 @@ gePretreatmentVector <- function(pretreatment){
   if(pretreatment == "meam"){
     return(c("center"))
   }
+  if(pretreatment=="pareto-scale"){
+    return(c("pareto"))
+  }
+  if(pretreatment =="vast-scaling"){
+    return(c("vast"))
+  }
+  if(pretreatment=="level-scaling"){
+    return(c("level"))
+  }
 }
 
-#' getRegressionParameters
-#' @description creates  regressionParameterList which contains all relevant
-#' information to be used by machine learning models. regressionParameterList
+#' getClassificationParameters
+#' @description creates  classificationParameterList which contains all relevant
+#' information to be used by machine learning models. classificationParameterList
 #' is used as an internal object passed through different functions in machine
 #' learning modeling
-#' @author Ozlem Karadeniz \email{ozlem.karadeniz.283@@cranfield.ac.uk}
+#' @author Lea Saxton \email{lea.saxton.831@@cranfield.ac.uk}
 #' @param mlm  machine learning model list
 #' @param dataSet  dataFrame produced by analytical platforms
-#' @param bacterialName bacterial name
-#' @return list of regression parameters
+#' @param metaDataName metadata Name 
+#' @return list of classification parameters
 #'
 #' @examples
-#' \dontrun{getRegressionParameters(mlm, dataSet, platform, bacterialName )}
+#' \dontrun{getClassificationParameters(mlm, dataSet, platform, metaDataName )}
 
-getRegressionParameters <- function(mlm, dataSet, platform, bacterialName){
+getClassificationParameters <- function(mlm, dataSet, platform, metaDataName){
   mlmParams <- strsplit(mlm, ":")[[1]]
+  print(mlmParams)
   if(mlmParams[2] == "" || is.na(mlmParams[2]))
     mlmParams[2] <- "mean-center"
   if(mlmParams[3] == "" || is.na(mlmParams[3]))
@@ -108,14 +104,16 @@ getRegressionParameters <- function(mlm, dataSet, platform, bacterialName){
   if(mlmParams[4] == ""  || is.na(mlmParams[4]))
     mlmParams[4] <- defPercentageForTrainingSet
   if(mlmParams[5] == ""  || is.na(mlmParams[5]))
-    mlmParams[5] <- defDirectionInStepwiseRegression
+    mlmParams[5] <- "repeatedcv"
+  if(mlmParams[6] == ""  || is.na(mlmParams[6]))
+    mlmParams[6] <- 10
   
-  # regressionParameterList object contains all necessary infırmation for a machine learning model to run
-  regressionParameterList <- list("method" = mlmParams[1], "pretreatment" =  mlmParams[2], "numberOfIterations" = as.numeric(mlmParams[3]),
+  # classificationParameterList object contains all necessary information for a machine learning model to run
+  classificationParameterList <- list("method" = mlmParams[1], "pretreatment" =  mlmParams[2], "numberOfIterations" = as.numeric(mlmParams[3]),
                                   "percentageForTrainingSet" = as.numeric(mlmParams[4]), dataSet = dataSet,
-                                  "platform" = platform, "direction" = mlmParams[5], "bacterialName" = bacterialName)
+                                  "platform" = platform, "resampling" = mlmParams[5], "metaDataName" = metaDataName, "tuneLength" = mlmParams[6])
   
-  return(regressionParameterList)
+  return(classificationParameterList)
   
 }
 
@@ -137,10 +135,10 @@ plotPrediction <- function(model, testSet) {
        ylab='Actual log10 TVC', main=paste('RMSE:', RMSE))
 }
 
-#' readConfigFile
+#' readConfigFileClass
 #' @description reads, parses and performs some validity checks on the configuration data
 #' supplied in json format as config file
-#' @author Ozlem Karadeniz \email{ozlem.karadeniz.283@@cranfield.ac.uk}
+#' @author Lea Saxton \email{lea.saxton.831@@cranfield.ac.uk}
 #' @param configFile  configFile
 #' @import configr
 #' @return list of config object containing machineLearningModels, outputDirectory,
@@ -149,7 +147,7 @@ plotPrediction <- function(model, testSet) {
 #' @examples
 #' \dontrun{readConfigFile(configFile)}
 
-readConfigFile<-function(configFile){
+readConfigFileClass<-function(configFile){
   
   fileExtension <- tolower(file_ext(configFile))
   if(fileExtension != "json")
@@ -173,9 +171,10 @@ readConfigFile<-function(configFile){
   # each machine leaarning model in the vector becomes string in the format of
   # shortName:pretreatment:numberOfIterations:proportionOfTrainingSet
   mlmConfig <-  config$machineLearningModels
+
   mlmList <-c()
   for(i in 1:length(mlmConfig$shortName)){
-    if( (mlmConfig$shortName[i] == "RT" || mlmConfig$shortName[i] == "RFR")  && (!is.null(mlmConfig$direction[i]) && !is.na(mlmConfig$direction[i])))
+    if( (mlmConfig$shortName[i] == "RT" || mlmConfig$shortName[i] == "RF")  && (!is.null(mlmConfig$direction[i]) && !is.na(mlmConfig$direction[i])))
       warning("Data pretreatmet is not performed in Ramdom Forests and Regression Trees, parameter is ignored!")
     if(mlmConfig$shortName[i] != "SR" &&  !is.null(mlmConfig$direction[i]) && !is.na(mlmConfig$direction[i]))
       warning("direction paremeter is only used in Stepwise Regression, in other regression models it is ignored!")
@@ -186,12 +185,12 @@ readConfigFile<-function(configFile){
       mlmConfig$numberOfIterations[i] <- defNumberOfIterations
     if(is.null(mlmConfig$proportionOfTrainingSet[i]) || is.na(mlmConfig$proportionOfTrainingSet[i]))
       mlmConfig$proportionOfTrainingSet[i] <- defPercentageForTrainingSet
-    if(is.null(mlmConfig$direction[i]) || is.na(mlmConfig$direction[i]) )
-      mlmConfig$direction[i] <- defDirectionInStepwiseRegression
+
     
     
     mlmList <- c(mlmList, paste0(mlmConfig$shortName[i], ":" , mlmConfig$pretreatment[i], ":",
-                                 mlmConfig$numberOfIterations[i], ":" ,mlmConfig$proportionOfTrainingSet[i], ":"))
+                                 mlmConfig$numberOfIterations[i], ":" ,mlmConfig$proportionOfTrainingSet[i], ":",
+                                 mlmConfig$resampling[i],":", mlmConfig$tuneLength[i]))
   }
   
   config$machineLearningModels <- mlmList
@@ -201,24 +200,25 @@ readConfigFile<-function(configFile){
 }
 
 
-#' readDataset
+#' readDatasetClass
 #' @description reads, parses and performs some validity checks on the dataset.
 #' Data manipulation is done if it is needed. For example if the number of features exceeds
 #' 200, it is reduced by feature selection. Any name of feature is numeric, it is converted to
 #' character value as it is required in some machine learning models.
 #' supplied in json format as config file
-#' @author Ozlem Karadeniz \email{ozlem.karadeniz.283@@cranfield.ac.uk}
+#' @author Lea Saxton \email{lea.saxton.831@@cranfield.ac.uk}
 #' @param dataFileName  dataFileName
 #' @import openxlsx caret tools
 #' @return dataFrame
 #'
 #' @examples
-#' \dontrun{readConfigFile(configFile)}
+#' \dontrun{readConfigFileClass(configFile)}
 #'
 
 # Modified by Shintaro Kinoshita : add "metaFileName" and "bacterialName" arguments to "readData" function
-readDataset<-function(dataFileName, metaFileName, bacterialName){
+readDatasetClass<-function(dataFileName, metaFileName, metaDataName){
   cat("readDataSet function is starting \n")
+  print(dataFileName)
   fileExtension <- tolower(file_ext(dataFileName))
   # According to file extension different method is used to read data
   if(fileExtension == "xlsx")
@@ -235,15 +235,14 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
   dataSet <- dataSet[, !emptyColumns]
   dataSet <- na.omit(dataSet)
   colnames(dataSet) <- gsub("X","", colnames(dataSet))
-
+  
   dataSet <- dataSet[,2:ncol(dataSet)]
 
-  
   #colnames(dataSet)=as.character(colnames(dataSet))
   
   # Modified by Lea Saxton : Read metadata
   rawMetaData <- read.csv( metaFileName, header = TRUE )
-  print(rawMetaData)
+
   # Check if column names contain "Sample", "sample", "Samples", or "samples"
   if ("Sample" %in% colnames(rawMetaData) ||
       "sample" %in% colnames(rawMetaData) ||
@@ -256,69 +255,61 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
     row_names2 <- make.unique(rownames(rawMetaData))
     rownames(rawMetaData) <- row_names2
     # Remove the sampleColumn from the data frame
-    rawMetaData <- rawMetaData[, -which(colnames(rawMetaData) %in% sampleColumn)]
+    rawMetaData <- as.data.frame(rawMetaData[, -which(colnames(rawMetaData) == sampleColumn)])
+    colnames(rawMetaData) <- metaDataName
   }
-  print(rawMetaData)
-
   # Remove the last letter from row names in dataSet
   #row.names(dataSet) <- sub(".$", "", row.names(dataSet))
   # Remove the last letter from row names in rawMetaData
   #row.names(rawMetaData) <- sub(".$", "", row.names(rawMetaData))
-  
   # Find common row names
   common_rows <- intersect(row.names(dataSet), row.names(rawMetaData))
+
   # Filter dataSet_removed to include only common rows
+  
   dataSet <- dataSet[row.names(dataSet) %in% common_rows, ]
   
   # Filter rawMetaData to include only common rows
-  rawMetaData <- rawMetaData[row.names(rawMetaData) %in% common_rows, ]
-  
+  rawMetaData <- as.data.frame(rawMetaData[row.names(rawMetaData) %in% common_rows, ])
+  colnames(rawMetaData) <- metaDataName
   # Combine the datasets using cbind
   dataSet <- cbind(dataSet, rawMetaData)
-  
-
+  print(dataSet)
+  print(rawMetaData)
+  print(dim(dataSet))
   #if(any(!is.na(as.numeric(colnames(dataSet)))))
   #colnames(dataSet)[colnames(dataSet)!="TVC"] <- paste0("a", colnames(dataSet),"")
-  
   # Number of features is reduced by feature selection,
   # import in processing FTIR data
-  print(bacterialName)
-  print(dim(dataSet))
   if (ncol(dataSet) > 200) {
     cat("number Features > 200 \n")
-    features <- selectFeatures(dataSet, bacterialName)
+    features <- selectFeaturesClass(dataSet, metaDataName)
     features <- as.data.frame(features)
-    if ("TVC" %in% colnames(dataSet)) {
-      cat("One column is TVC \n")
-      dataSet <- dataSet[, c(features,"TVC")]
-    } else {
-      cat("There is no TVC column \n")
-      TVC <- dataSet[,bacterialName]
-      dataSet <- dataSet[, colnames(dataSet) %in% colnames(features)]
-      dataSet <- cbind(dataSet,TVC)
-      cat("done")
-    }
+    sensory <- dataSet[,metaDataName]
+    dataSet <- dataSet[, colnames(dataSet) %in% colnames(features)]
+    dataSet <- cbind(dataSet,sensory)
+    cat("done")
   }
   
-  
-  # Modified by Shintaro Kinoshita : Check if the metadata contains the data named 'bacterialName'
-  cat( paste0( "\nbacterialName : ", bacterialName, "\n" ) )
-  if ( !any( names( rawMetaData ) == bacterialName ) ) {
-    cat( "WARNING : ", "The data column named '", bacterialName, "' was not found in the metadata." )
+  # Check if the metadata contains the data named 'metaDataName'
+  cat( paste0( "\nmetaDataName : ", metaDataName, "\n" ) )
+  print(colnames(rawMetaData))
+  if ( !any( names( rawMetaData ) == metaDataName ) ) {
+    cat( "WARNING : ", "The data column named '", metaDataName, "' was not found in the metadata." )
     cat( "\nCheck the metadata content again.\n" )
     cat( paste0( "'", names( rawMetaData )[ length( rawMetaData ) ], "' in the metadata are used instead. \n\n" ) )
-    bacterialName <- names( rawMetaData )[ length( rawMetaData ) ]
-  }
-
-  # Modified by Shintaro Kinoshita : Combine Dataset and TVC data if not found
-  if( !length( grep( bacterialName, names( dataSet ) ) ) > 0 && !is.null( metaFileName ) ) {
-    metaData    <- data.frame( TVC = rawMetaData[ , bacterialName ] ) #; print( metaData )
-    min_nrow    <- min( nrow( dataSet ), nrow( metaData ) ) #; print( min_nrow )
-    dataSet     <- cbind( dataSet[ 1:min_nrow, ], TVC = metaData[ 1:min_nrow, ] )#; print( dataSet_mod )
-    cat( paste0( "NOTE : NO '", bacterialName, "' data found in the original data. the first ", min_nrow, " rows in the metadata were combined to the original dataset." ) )
+    metaDataName <- names( rawMetaData )[ length( rawMetaData ) ]
   }
   
-
+  # Combine Dataset and metadata if not found
+  if( !length( grep( metaDataName, names( dataSet ) ) ) > 0 && !is.null( metaFileName ) ) {
+    metaData    <- data.frame( sensory = rawMetaData[ , metaDataName ] ) #; print( metaData )
+    min_nrow    <- min( nrow( dataSet ), nrow( metaData ) ) #; print( min_nrow )
+    dataSet     <- cbind( dataSet[ 1:min_nrow, ], sensory= metaData[ 1:min_nrow, ] )#; print( dataSet_mod )
+    cat( paste0( "NOTE : NO '", metaDataName, "' data found in the original data. the first ", min_nrow, " rows in the metadata were combined to the original dataset." ) )
+  }
+  
+  
   #cat( "\n" )
   #print( dataSet )
   
@@ -326,15 +317,14 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
   
 }
 
-createPerformanceStatistics <- function(performanceResults, regressionParameterList){
-  # RMSEList contains list of RMSE for each iteration
-  RMSEList <- vector(mode="list", length = regressionParameterList$numberOfIterations)
-  RSquareList <- vector(mode="list", length = regressionParameterList$numberOfIterations)
+createPerformanceStatisticsClass <- function(performanceResults, classificationParameterList){
+  # AccList contains list of Accuracy for each iteration
+  AccList <- vector(mode="list", length = classificationParameterList$numberOfIterations)
   
-  RMSEList <- unlist(lapply(performanceResults, function(x) x$RMSE))
-  meanRMSE <- round(mean(RMSEList), 4)
-  cumulativeMeanRMSEList <- cumsum(RMSEList) / seq_along(RMSEList)
-  names(cumulativeMeanRMSEList) <- seq_along(RMSEList)
+  AccList <- unlist(lapply(performanceResults, function(x) x$Accuracy))
+  meanAcc <- round(mean(AccList), 4)
+  cumulativeMeanAccList <- cumsum(AccList) / seq_along(AccList)
+  names(cumulativeMeanAccList) <- seq_along(AccList)
   
   # RSquareList contains list of RSquare for each iteration
   RSquareList <- unlist(lapply(performanceResults, function(x) x$RSquare))
@@ -358,23 +348,23 @@ createPerformanceStatistics <- function(performanceResults, regressionParameterL
                  "pretreatment" = regressionParameterList$pretreatment)
 }
 
-#' selectFeatures
+#' selectFeaturesClass
 #' @description reduces the number of features in the dataset
 #' by selecting the more important fautures
-#' @author Ozlem Karadeniz \email{ozlem.karadeniz.283@@cranfield.ac.uk}
+#' @author Lea Saxton \email{lea.saxton.831@@cranfield.ac.uk}
 #' @param  dataSet  dataFrame object
 #' @import Boruta
 #' @return dataFrame
 #'
 #' @examples new dataset with reduced number of features
-#' \dontrun{selectFeatures(dataSet)}
+#' \dontrun{selectFeatures(dataSet, metaDataName)}
 
-selectFeatures <- function(dataSet, bacterialName) {
+selectFeaturesClass <- function(dataSet, metaDataName) {
   cat('selectFeatures function is starting \n')
-  cat("Dependent variable: ", bacterialName, "\n")
+  cat("Dependent variable: ", metaDataName, "\n")
   
   # Check for missing data in the dependent variable
-  if (any(is.na(dataSet[[bacterialName]]))) {
+  if (any(is.na(dataSet[[metaDataName]]))) {
     cat("Missing data found in the dependent variable. Removing rows with missing values.")
     dataSet <- dataSet[complete.cases(dataSet), ]
   }
@@ -382,16 +372,15 @@ selectFeatures <- function(dataSet, bacterialName) {
   # Perform Boruta search
   # It uses Random Forest model behind,
   # search top-down and eliminates the irrelevant features step-by-step progressively.
-
+  
   # Perform Boruta search
-  boruta_output <- Boruta(as.formula(paste(bacterialName, "~ .")), data = na.omit(dataSet), doTrace = 0)
-  cat("hello \n")
+  boruta_output <- Boruta(as.formula(paste(metaDataName, "~ .")), data = na.omit(dataSet), doTrace = 0)
   boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
   
   
   cat("Selected attributes:\n")
   print(boruta_signif)
-
+  
   
   cat("Hello, the selectFeatures function is finished \n")
   
@@ -428,83 +417,54 @@ removeRedundantFeatures<-function(dataSet){
   
 }
 
-#' statsRegression
+#' statsClassification
 #' @description calculates basic statistics of a predicted model
 #' by comparing to the observed data.
-#' @author Shintaro Kinoshita \email{shintaro.kinoshita.584@@cranfield.ac.uk}
+#' @author Lea Saxton \email{lea.saxton.831@@cranfield.ac.uk}
 #' @param  predicted
 #' @param  observed
-#' @return data frame containing RMSE, Accuracy, Bf, Af and Worst
+#' @return data frame containing Accuracy, Bf, Af and Worst
 #'
 #' @examples
-#' \dontrun{statsRegression(predicted, ovserved)}
+#' \dontrun{statsClassification(predicted, ovserved)}
 
-statsRegression<-function(predicted, observed){
-  # Make varilables absolute
-  predicted <- abs( predicted )
-  observed  <- abs( observed )
+statsClassification <- function(predicted, observed) {
+  cat("statsClassification function is starting \n")
+  # Calculate confusion matrix
+  cm <- table(predicted, observed)
   
-  # Check content
-  #cat( "\n############################################################\n" )
-  #cat( "\npredicted:\n" )
-  #cat( predicted )
-  #cat( "\nobserved:\n" )
-  #cat( observed )
-  #cat( "\n" )
+  # Calculate metrics
+  accuracy <- sum(diag(cm)) / sum(cm)
+  precision <- diag(cm) / colSums(cm)
+  recall <- diag(cm) / rowSums(cm)
+  f1_score <- 2 * precision * recall / (precision + recall)
   
-  #diff     <- abs(predicted-observed)
-  #Bf       <- 10^(mean(log10(predicted/observed)))
-  #Af       <- 10^mean(abs(log10(predicted/observed)))
-  #RMSE     <- sqrt(mean((predicted - observed)^2))
-  #Accuracy <- 100*(length(diff[which(diff<=1)])/length(predicted))
-  #Worst    <- max(diff)
-  
-  #cat( "\n\n" )
-  #cat( paste0( "Bf       = ", Bf,       "\n") )
-  #cat( paste0( "Af       = ", Af,       "\n") )
-  #cat( paste0( "RMSE     = ", RMSE,     "\n") )
-  #cat( paste0( "Accuracy = ", Accuracy, "\n") )
-  #cat( paste0( "Worst    = ", Worst,    "\n") )
-  #cat( "\n\n" )
-  
-  # Accuracy is the number of samples which are in which |pred-obs|<1 over the total num of samples
-  diff <- abs(predicted-observed)
-  params <- data.frame(
-    Bf = 10^(mean(log10(predicted/observed))),
-    Af = 10^mean(abs(log10(predicted/observed))),
-    RMSE = sqrt(mean((predicted - observed)^2)),
-    Accuracy = 100*(length(diff[which(diff<=1)])/length(predicted)),
-    Worst = max(diff)
-  )
-  #cat( "\n############################################################\n" )
-  
-  return(round(params, 3))
-  
+  # Create a data frame with the metrics
+  metrics <- data.frame(Accuracy = accuracy, Precision = precision, Recall = recall, F1_Score = f1_score)
+  print(metrics)
+  return(round(metrics, 3))
 }
 
-#' saveResult
+
+
+#' saveResultClass
 #' @description generates 'result.csv' contains the best statistics values in each models
-#' @author Shintaro Kinoshita \email{shintaro.kinoshita.584@@cranfield.ac.uk}
-#' @param  statsReg
+#' @author Lea Saxton \email{lea.saxton.831@@cranfield.ac.uk}
+#' @param  statsClass
 #' @param  outputDir
 #' @return null, generates 'result.csv' contains the best statistics values in each models
 #'
 #' @examples
-#' \dontrun{saveResult(statsReg, outDir)}
+#' \dontrun{saveResultClass(statsClass, outDir)}
 
-#Modified by Lea Saxton to add the bacterial type and ensure there are not duplicates in the file
-saveResult <- function(statsReg, method, outputDir, platform, bacterialName) {
+saveResultClass <- function(statsClass, method, outputDir) {
   # make a data frame which is added to 'result.csv'
   df <- data.frame(
     method = method,
-    platform = platform,
-    bacteria = bacterialName,
-    RMSE = statsReg$RMSE,
-    Acc = statsReg$Accuracy,
-    Delta = statsReg$Worst,
-    Af = statsReg$Af,
-    Bf = statsReg$Bf,
-    k = statsReg$bestK
+    Acc = statsClass$Accuracy,
+    Precision = statsClass$Precision,
+    Recall = statsClass$Recall,
+    F1 = statsClass$F1_Score
   )
   
   # Define filepath: Modify outputDir if required
