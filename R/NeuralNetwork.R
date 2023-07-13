@@ -16,15 +16,52 @@
 #' @examples
 #' \dontrun{neuralNetwork.run(regressionParameterList)}
 
+# Identify and remove outliers using Tukey's fences
+remove_outliers <- function(dataSet, bacterialName, multiplier = 1.5) {
+        variable <- dataSet[[bacterialName]]
+        q1 <- quantile(variable, 0.25)
+        q3 <- quantile(variable, 0.75)
+        iqr <- q3 - q1
+
+        fence_low <- q1 - multiplier * iqr
+        fence_high <- q3 + multiplier * iqr
+        print(fence_high)
+        print(fence_low)
+
+        data_cleaned <- dataSet[!(variable < fence_low | variable > fence_high), ]
+
+        return(data_cleaned)
+}
+
 neuralNetwork.run <- function(regressionParameterList){
         cat(regressionParameterList$pretreatment)
-        cat(gePretreatmentVector(regressionParameterList$pretreatment))
+        cat(gePretreatmentVector(regressionParameterList$pretreatment), "\n")
+        dataSet_removed <- regressionParameterList$dataSet
+        bacterialName <- regressionParameterList$bacterialName
+        platformName <- regressionParameterList$platform
+        # Modified by Lea Saxton : Ensuring the dataset does not containg NaN and missing values
+        dataSet_removed <- na.omit(dataSet_removed)
+        # Iterate over each element in the list
+        for (i in seq_along(dataSet_removed)) {
+                if (is.numeric(dataSet_removed[[i]])) {
+                        # Check for NaN values in numeric elements
+                        dataSet_removed[[i]] <- dataSet_removed[[i]][!is.nan(dataSet_removed[[i]])]
+                }
+        }
+        # Create dataSet_TVC with the same row names as dataSet_removed
+        dataSet_TVC <- data.frame(TVC = dataSet_removed[[bacterialName]])
+        rownames(dataSet_TVC) <- row.names(dataSet_removed) # ;cat( str( dataSet_removed ) )
+        dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ] # ;cat( str( dataSet_TVC ) )
+        # Find common row names
+        common_rows <- intersect(row.names(dataSet_removed), row.names(dataSet_TVC))
+        # Filter dataSet_removed to include only common rows
+        dataSet_removed <- dataSet_removed[row.names(dataSet_removed) %in% common_rows, ]
         if (regressionParameterList$pretreatment == "raw") {
-          dataSet <- regressionParameterList$dataSet
+                dataSet <- cbind(dataSet_removed, dataSet_TVC)
         } else {
-        preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
-        regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
-        dataSet <- regressionParameterList$dataSet
+                preProcValues <- preProcess(dataSet_removed, method = gePretreatmentVector(regressionParameterList$pretreatment))
+                dataSet <- cbind(dataSet_removed, dataSet_TVC)
+                #regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
         }
         set.seed(90)
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,
@@ -44,13 +81,33 @@ neuralNetwork.run <- function(regressionParameterList){
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 testSet <- dataSet[-trainIndexList[,i],]
-                print(trainSet)
-                cat("Hello Lea")
-                print(sum(is.na(trainSet)))
+                # Impute missing values using k-nearest neighbor imputation
+                preProcValues <- preProcess(trainSet, method = "knnImpute")
+                trainSet <- predict(preProcValues, trainSet)
+                testSet <- predict(preProcValues, testSet)
+                #Remove outliers from a specific variable in your dataset
+                trainSet <- remove_outliers(trainSet, "TVC", 1.5)
+                # Check if there are two columns named "TVC" in trainSet
+                if (sum(colnames(trainSet) == "TVC") == 2) {
+                        cat("there are 2 columns 'TVC' in trainSet \n")
+                        # Remove one of the "TVC" columns
+                        trainSet <- trainSet[, -which(colnames(trainSet) == "TVC")[1]]
+                }
+
+                # Check if there are two columns named "TVC" in testSet
+                if (sum(colnames(testSet) == "TVC") == 2) {
+                        cat("there are 2 columns 'TVC' in testSet \n")
+                        # Remove one of the "TVC" columns
+                        testSet <- testSet[, -which(colnames(testSet) == "TVC")[1]]
+                }
+                if ("TVC" %in% colnames(trainSet)) {
+                         print("Column named TVC exists in trainSet")
+                } else {
+                        print("Column named TVC does not exist in trainSet")
+                }
                 modelFit <- neuralnet(TVC ~ . ,
-                               data = as.matrix(trainSet),
+                               data = as.data.frame(trainSet),
                                hidden=10, threshold=0.04, act.fct="tanh", linear.output=TRUE, stepmax=1e7)
-                cat("Hello Lea 2")
                 predictedValues <- predict(modelFit, as.matrix(testSet))
 
                 # Performance metrics (RMSE and RSquare) are calculated by comparing the predicted and actual values
@@ -76,7 +133,7 @@ neuralNetwork.run <- function(regressionParameterList){
         extracted_path <- sub("/analysis/.*", "", name_path)
         # Create a new parameter with the name of the folder where the models will be saved
         folder_models <- "models"
-        # Changing the path 
+        # Changing the path
         name_path <- file.path(extracted_path, folder_models)
         cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
@@ -119,7 +176,7 @@ neuralNetwork.run <- function(regressionParameterList){
         # statsReg will contains 'k value'
         bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, platformName, bacterialName)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 

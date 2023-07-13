@@ -31,6 +31,7 @@ randomForest.run <- function(regressionParameterList){
         # Modified by Shintaro Kinohita :
         dataSet_removed <- regressionParameterList$dataSet
         bacterialName <- regressionParameterList$bacterialName
+        platformName <- regressionParameterList$platform
         # Modified by Lea Saxton : Ensuring the dataset does not containg NaN and missing values
         dataSet_removed <- na.omit(dataSet_removed)
         # Iterate over each element in the list
@@ -165,9 +166,9 @@ randomForest.run <- function(regressionParameterList){
         # statsReg will contains 'k value'
         bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, bacterialName)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, platformName, bacterialName)
 
-        return(createPerformanceStatistics(performanceResults, regressionParameterList ))
+        return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }
 
 randomforest.run.alternative <- function(dataAll){

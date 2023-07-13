@@ -30,6 +30,7 @@ pruneTree <- function(modelTree, testSet) {
     modelRMSE <- RMSE(testSet$TVC, predicted)
     modelRSquare <- RSQUARE(testSet$TVC, predicted)
     RMSEListForCpList <- c(RMSEListForCpList, modelRMSE)
+
     if (modelRMSE < bestRMSE) {
       cat("We are in the loop \n")
       bestRMSE <- modelRMSE
@@ -101,6 +102,7 @@ regressionTree.run <- function(regressionParameterList){
         # there is no need for data pretreatment  before regression tree
         bacterialName <- regressionParameterList$bacterialName
         dataSet_removed <- regressionParameterList$dataSet
+        platformName <- regressionParameterList$platform
         cat(regressionParameterList$pretreatment)
         if (bacterialName %in% colnames(dataSet_removed)) {
           dataSet_TVC <- data.frame(TVC = dataSet_removed[, bacterialName])
@@ -156,11 +158,16 @@ regressionTree.run <- function(regressionParameterList){
                 ##Decision trees
                 modelTree <- rpart(trainSet$TVC ~ ., data=trainSet)
 
+                #function to check if any rows have missing values and remove them if necessary
+                testSet <- testSet[complete.cases(testSet), ]
                 # cost-complexity post-pruning
                 pruneResult <- pruneTree(modelTree,testSet)
 
                 RMSE <- pruneResult$RMSE
                 RSquare <- pruneResult$RSquare
+
+                print(RMSE)
+                print(RSquare)
 
                 # Check if this model has the best RMSE so far
                 if (RMSE < bestRMSE) {
@@ -226,6 +233,6 @@ regressionTree.run <- function(regressionParameterList){
         cat("bestHyperParams \n")
         print(bestHyperParams)
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, bacterialName)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, platformName, bacterialName)
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }

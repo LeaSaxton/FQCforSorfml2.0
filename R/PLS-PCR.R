@@ -30,7 +30,8 @@ pls.pcr.run<- function(regressionParameterList){
         cat('pls.pcr.run \n')
         bacterialName <- regressionParameterList$bacterialName
         dataSet_removed <- regressionParameterList$dataSet
-        cat(regressionParameterList$pretreatment)
+        platformName <- regressionParameterList$platform
+        cat(regressionParameterList$pretreatment, "\n")
         if (bacterialName %in% colnames(dataSet_removed)) {
           dataSet_TVC <- data.frame(TVC = dataSet_removed[, bacterialName])
           rownames(dataSet_TVC) <- row.names(dataSet_removed)
@@ -52,7 +53,16 @@ pls.pcr.run<- function(regressionParameterList){
           regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
           #dataSet <- regressionParameterList$dataSet
         }
-
+        # Function to replace 0 values with column median
+        #replace_zeros_with_median <- function(x) {
+                #if (any(x == 0)) {
+                        #median_value <- median(x[x != 0])
+                        #x[x == 0] <- median_value
+                #}
+                #return(x)
+        #}
+        # Apply the function to each column of trainSet
+        #dataSet <- as.data.frame(lapply(dataSet, replace_zeros_with_median))
         set.seed(1821)
         # Partition data into training and test set
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,
@@ -69,7 +79,6 @@ pls.pcr.run<- function(regressionParameterList){
 
         # Modified by Shintaro Kinoshita : Define the statistics regression list
         statsReg <- NULL
-
         for(i in 1:regressionParameterList$numberOfIterations) {
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
@@ -95,26 +104,28 @@ pls.pcr.run<- function(regressionParameterList){
                           modelFit <- plsr(TVC ~ . , data=trainSet, scale=TRUE, validation="CV")
                   }
                 }
-
                 # Using testSet pls or pcr model predicts TVC values
                 predictedValues <- predict(modelFit, testSet, ncomp=2)
-
+                #print(predictedValues)
                 # Performance metrics (RMSE and RSquare) are calculated by comparing the predicted and actual values
                 RMSE<- RMSE(testSet$TVC, predictedValues)
                 RSquare <- RSQUARE(testSet$TVC, predictedValues)
-
                 # Check if this model has the best RMSE so far
-                if (RMSE < bestRMSE) {
-                        bestRMSE  <- RMSE
-                        bestModel <- modelFit
-                        bestHyperParams <- list("k"=modelFit$bestTune[1,1])
-                        statsReg <- statsRegression( predictedValues, testSet$TVC )
-                }
+                if (!is.nan(RMSE) && !is.nan(RSquare)) {
+                        # Check if this model has the best RMSE so far
+                        if (RMSE < bestRMSE) {
+                                bestRMSE <- RMSE
+                                bestModel <- modelFit
+                                bestHyperParams <- list("k" = modelFit$bestTune[1, 1])
+                                statsReg <- statsRegression(predictedValues, testSet$TVC)
+                        }
 
                 # pls or pcr model model with the performance metrics for the current iteration is appended to the  model list
                 # the model list contains all models for all iterations
-                performanceResults[[i]] <- list("RMSE" = RMSE, "RSquare" = RSquare)
-
+                        performanceResults[[i]] <- list("RMSE" = RMSE, "RSquare" = RSquare)
+                } else {
+                        cat("NaN values found in RMSE or RSquare calculation. Skipping model for iteration ", i, "\n")
+                }
                 # Modified by Shintaro Kinoshita : append model to the list
                 #modelFit$call$formula <- as.character(modelFit$call$formula)
                 #all_models[[i]] <- modelFit
@@ -168,6 +179,6 @@ pls.pcr.run<- function(regressionParameterList){
         # statsReg will contains 'k value'
         bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, regressionParameterList$platformName, bacterialName )
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, platformName, bacterialName )
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }

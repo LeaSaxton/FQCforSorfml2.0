@@ -233,17 +233,16 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
   rownames(dataSet) <- row_names
   emptyColumns <- colSums(is.na(dataSet) | dataSet == "") == nrow(dataSet)
   dataSet <- dataSet[, !emptyColumns]
-  dataSet <- na.omit(dataSet)
+  #dataSet <- na.omit(dataSet)
   colnames(dataSet) <- gsub("X","", colnames(dataSet))
 
   dataSet <- dataSet[,2:ncol(dataSet)]
 
-  
+  print(dim(dataSet))  
   #colnames(dataSet)=as.character(colnames(dataSet))
   
   # Modified by Lea Saxton : Read metadata
   rawMetaData <- read.csv( metaFileName, header = TRUE )
-  print(rawMetaData)
   # Check if column names contain "Sample", "sample", "Samples", or "samples"
   if ("Sample" %in% colnames(rawMetaData) ||
       "sample" %in% colnames(rawMetaData) ||
@@ -258,7 +257,6 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
     # Remove the sampleColumn from the data frame
     rawMetaData <- rawMetaData[, -which(colnames(rawMetaData) %in% sampleColumn)]
   }
-  print(rawMetaData)
 
   # Remove the last letter from row names in dataSet
   #row.names(dataSet) <- sub(".$", "", row.names(dataSet))
@@ -275,15 +273,13 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
   
   # Combine the datasets using cbind
   dataSet <- cbind(dataSet, rawMetaData)
-  
+
 
   #if(any(!is.na(as.numeric(colnames(dataSet)))))
   #colnames(dataSet)[colnames(dataSet)!="TVC"] <- paste0("a", colnames(dataSet),"")
   
   # Number of features is reduced by feature selection,
   # import in processing FTIR data
-  print(bacterialName)
-  print(dim(dataSet))
   if (ncol(dataSet) > 200) {
     cat("number Features > 200 \n")
     features <- selectFeatures(dataSet, bacterialName)
@@ -300,6 +296,9 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
     }
   }
   
+  # Impute missing values using k-nearest neighbor imputation
+  preProcValues <- preProcess(dataSet, method = "knnImpute")
+  dataSet <- predict(preProcValues, dataSet)
   
   # Modified by Shintaro Kinoshita : Check if the metadata contains the data named 'bacterialName'
   cat( paste0( "\nbacterialName : ", bacterialName, "\n" ) )
@@ -492,21 +491,25 @@ statsRegression<-function(predicted, observed){
 #' @examples
 #' \dontrun{saveResult(statsReg, outDir)}
 
-#Modified by Lea Saxton to add the bacterial type and ensure there are not duplicates in the file
-saveResult <- function(statsReg, method, outputDir, platform, bacterialName) {
+#Modified by Lea Saxton to add the bacterial type and platform name and ensure there are not duplicates in the file
+saveResult <- function(statsReg, method, outputDir, platformName, bacterialName) {
+  cat("saveResult function is starting \n")
+  if (is.null(statsReg$RMSE) || is.null(statsReg$Accuracy) || is.null(statsReg$Worst) || is.null(statsReg$Af) || is.null(statsReg$Bf) || is.null(statsReg$bestK)) {
+    stop("One or more properties in statsReg are null.")
+  }
   # make a data frame which is added to 'result.csv'
   df <- data.frame(
     method = method,
-    platform = platform,
+    platform = platformName,
     bacteria = bacterialName,
-    RMSE = statsReg$RMSE,
-    Acc = statsReg$Accuracy,
-    Delta = statsReg$Worst,
-    Af = statsReg$Af,
-    Bf = statsReg$Bf,
-    k = statsReg$bestK
+    RMSE = statsReg["RMSE"],
+    Acc = statsReg["Accuracy"],
+    Delta = statsReg["Worst"],
+    Af = statsReg["Af"],
+    Bf = statsReg["Bf"],
+    k = statsReg["bestK"]
   )
-  
+  print(df)
   # Define filepath: Modify outputDir if required
   filepath <- file.path(outputDir, "result.csv")
   

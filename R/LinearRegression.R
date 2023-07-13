@@ -31,6 +31,7 @@ linearRegression.run <- function(regressionParameterList){
         # In regression, it is often recommended to scale the features to make it easier to interpret the intercept term.
         # Scaling type is supplied by the user
         bacterialName <- regressionParameterList$bacterialName
+        platformName <- regressionParameterList$platform
         dataSet_removed <- regressionParameterList$dataSet
         cat(regressionParameterList$pretreatment)
         if (bacterialName %in% colnames(dataSet_removed)) {
@@ -73,6 +74,8 @@ linearRegression.run <- function(regressionParameterList){
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 testSet <- dataSet[-trainIndexList[,i],]
+                trainSet <- na.omit(trainSet)
+                testSet <- na.omit(testSet)
                 # Check if there are two columns named "TVC" in trainSet
                 if (sum(colnames(trainSet) == "TVC") == 2) {
                   cat("there are 2 columns 'TVC' in trainSet \n")
@@ -169,7 +172,7 @@ linearRegression.run <- function(regressionParameterList){
         # statsReg will contains 'k value'
         bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, bacterialName)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, platformName, bacterialName)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }

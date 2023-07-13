@@ -33,6 +33,7 @@ knn.run <- function(regressionParameterList){
 
         dataSet_removed <- regressionParameterList$dataSet
         bacterialName <- regressionParameterList$bacterialName
+        platformName <- regressionParameterList$platform
         # Modified by Lea Saxton : Ensuring the dataset does not containg NaN and missing values
         dataSet_removed <- na.omit(dataSet_removed)
         emptyColumns <- colSums(is.na(dataSet_removed) | dataSet_removed == "") == nrow(dataSet_removed)
@@ -71,6 +72,9 @@ knn.run <- function(regressionParameterList){
           regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
           #dataSet <- regressionParameterList$dataSet
         }
+        # Impute missing values using k-nearest neighbor imputation
+        preProcValues <- preProcess(dataSet, method = "knnImpute")
+        dataSet <- predict(preProcValues, dataSet)
         set.seed(1821)
         # Partition data into training and test set
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,
@@ -120,10 +124,6 @@ knn.run <- function(regressionParameterList){
                 # Get column names of testSet and trainSet
                 testSet_columns <- colnames(testSet)
                 trainSet_columns <- colnames(trainSet)
-
-                #print(testSet[1:10,1:10])
-                #print(trainSet[1:10,1:10])
-                #print(dim(testSet))
 
                 # Display the last 10 rows of the last 10 columns
                 num_rows <- 10
@@ -213,7 +213,7 @@ knn.run <- function(regressionParameterList){
         # statsReg will contains 'k value'
         bestHyperParams <- data.frame( bestK = bestHyperParams$k ) # Make a dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, bacterialName)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir,platformName, bacterialName)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }

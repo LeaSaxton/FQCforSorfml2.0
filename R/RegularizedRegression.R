@@ -32,6 +32,7 @@ regularizedRegression.run <- function(regressionParameterList){
         # In regression, it is often recommended to scale the features to make it easier to interpret the intercept term.
         # Scaling type is supplied by the user
         bacterialName <- regressionParameterList$bacterialName
+        platformName <- regressionParameterList$platform
         dataSet_removed <- regressionParameterList$dataSet
         cat(regressionParameterList$pretreatment)
         if (bacterialName %in% colnames(dataSet_removed)) {
@@ -53,7 +54,6 @@ regularizedRegression.run <- function(regressionParameterList){
           regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
           #dataSet <- regressionParameterList$dataSet
         }
-        print(dataSet)
         set.seed(1821)
         # Partition data into training and test set
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,
@@ -75,6 +75,8 @@ regularizedRegression.run <- function(regressionParameterList){
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 testSet <- dataSet[-trainIndexList[,i],]
+                trainSet <- na.omit(trainSet)
+                testSet <- na.omit(testSet)
                 # Check if there are two columns named "TVC" in trainSet
                 if (sum(colnames(trainSet) == "TVC") == 2) {
                   cat("there are 2 columns 'TVC' in trainSet \n")
@@ -140,7 +142,7 @@ regularizedRegression.run <- function(regressionParameterList){
         extracted_path <- sub("/analysis/.*", "", name_path)
         # Create a new parameter with the name of the folder where the models will be saved
         folder_models <- "models"
-        # Changing the path 
+        # Changing the path
         name_path <- file.path(extracted_path, folder_models)
         cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
@@ -178,11 +180,11 @@ regularizedRegression.run <- function(regressionParameterList){
         #name_path     <- paste0( "machineLearning/models/", name_file )
         #saveRDS( all_models, file = name_path )
         #saveRDS( all_models, file = name_file )
-        
+
         # Modified by Shinaro Kinoshita : Add statistics values into result.csv
         bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
         cat("hello3 \n")
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, bacterialName)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, platformName, bacterialName)
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }

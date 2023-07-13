@@ -30,6 +30,7 @@ svr.run <- function(regressionParameterList){
         cat('svr.run \n')
         dataSet_removed <- regressionParameterList$dataSet
         bacterialName <- regressionParameterList$bacterialName
+        platformName <- regressionParameterList$platform
         if (bacterialName %in% colnames(dataSet_removed)) {
           dataSet_TVC <- data.frame(TVC = dataSet_removed[, bacterialName])
           rownames(dataSet_TVC) <- row.names(dataSet_removed)
@@ -70,6 +71,9 @@ svr.run <- function(regressionParameterList){
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 testSet <- dataSet[-trainIndexList[,i],]
+                # Remove rows with missing values from trainSet and testSet
+                trainSet <- trainSet[complete.cases(trainSet), ]
+                testSet <- testSet[complete.cases(testSet), ]
                 # Check if there are two columns named "TVC" in trainSet
                 if (sum(colnames(trainSet) == "TVC") == 2) {
                   cat("there are 2 columns 'TVC' in trainSet \n")
@@ -94,9 +98,12 @@ svr.run <- function(regressionParameterList){
                                         "epsilon" = tuningResult$best.parameters["epsilon"][1,1])
 
                 # svr model is created with the best hyperparameters for the current iteration
+                cat('Hello \n')
+                cat("################################################# \n")
                 modelFit <- svm(trainSet, trainSet$TVC, type="eps-regression",
                                 kernel=regressionParameterList$kernel, cost=bestHyperParams$cost, gamma =bestHyperParams$gamma,
                                 epsilon =bestHyperParams$epsilon)
+                cat("hello 2 \n")
                 # Using testSet svr model predicts TVC values
                 predictedValues <- predict(modelFit , testSet)
                 # Performance metrics (RMSE and RSquare) are calculated by comparing the predicted and actual values
@@ -181,7 +188,7 @@ svr.run <- function(regressionParameterList){
         # Modified by Shinaro Kinoshita : Add statistics values into result.csv
         bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, bacterialName)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, platformName, bacterialName)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 }

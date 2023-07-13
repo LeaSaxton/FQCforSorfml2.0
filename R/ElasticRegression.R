@@ -32,6 +32,7 @@ elasticRegression.run <- function(regressionParameterList){
         # In regression, it is often recommended to scale the features to make it easier to interpret the intercept term.
         # Scaling type is supplied by the user
         bacterialName <- regressionParameterList$bacterialName
+        platformName <- regressionParameterList$platform
         dataSet_removed <- regressionParameterList$dataSet
         cat(regressionParameterList$pretreatment)
         if (bacterialName %in% colnames(dataSet_removed)) {
@@ -41,8 +42,6 @@ elasticRegression.run <- function(regressionParameterList){
         } else {
           cat("The bacterialName column does not exist in the dataSet_removed data frame.\n")
         }
-        print(dataSet_TVC)
-        print(dataSet_removed)
         # Find common row names
         common_rows <- intersect(row.names(dataSet_removed), row.names(dataSet_TVC))
         # Filter dataSet_removed to include only common rows
@@ -55,13 +54,10 @@ elasticRegression.run <- function(regressionParameterList){
           regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
           #dataSet <- regressionParameterList$dataSet
         }
-        print(dataSet_TVC)
-        print(dataSet_removed)
         set.seed(1821)
-
+        #Creating Partition
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,
                                               list = FALSE, times = regressionParameterList$numberOfIterations)
-
         performanceResults <- vector(mode="list", length = regressionParameterList$numberOfIterations)
 
         # Modified by Shintaro Kinoshita : List of models for RDS
@@ -78,13 +74,15 @@ elasticRegression.run <- function(regressionParameterList){
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 testSet <- dataSet[-trainIndexList[,i],]
+                trainSet <- na.omit(trainSet)
+                testSet <- na.omit(testSet)
                 # Check if there are two columns named "TVC" in trainSet
                 if (sum(colnames(trainSet) == "TVC") == 2) {
                   cat("there are 2 columns 'TVC' in trainSet \n")
                   # Remove one of the "TVC" columns
                   trainSet <- trainSet[, -which(colnames(trainSet) == "TVC")[1]]
                 }
-                
+
                 # Check if there are two columns named "TVC" in testSet
                 if (sum(colnames(testSet) == "TVC") == 2) {
                   cat("there are 2 columns 'TVC' in testSet \n")
@@ -131,7 +129,7 @@ elasticRegression.run <- function(regressionParameterList){
         extracted_path <- sub("/analysis/.*", "", name_path)
         # Create a new parameter with the name of the folder where the models will be saved
         folder_models <- "models"
-        # Changing the path 
+        # Changing the path
         name_path <- file.path(extracted_path, folder_models)
         cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
@@ -173,7 +171,7 @@ elasticRegression.run <- function(regressionParameterList){
         # statsReg will contains 'k value'
         bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, platformName, bacterialName)
 
         return(createPerformanceStatistics(performanceResults, regressionParameterList))
 

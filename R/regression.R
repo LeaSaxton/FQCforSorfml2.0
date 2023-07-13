@@ -88,8 +88,6 @@ run.analysis <- function(configParams){
                         # Each platform has got different mlmPerformanceResults list
                         mlmPerformanceResults[[j]]  <- mlmPerformanceResult
                 }
-
-                
                 # Best machine learning model for the platform is printed
                 cat("For ", platformList[i], " best model is ", bestMLM , " with RMSE: " , bestRMSE,  " and R-squared: ", bestRSquare, "\n")
 
@@ -100,6 +98,7 @@ run.analysis <- function(configParams){
                                                         "mlmPerformanceResults" = mlmPerformanceResults )
 
         }
+        #print(platformPerformanceResults)
         # RSquare_Statistics.csv and RMSE_Statistics.csv files are created if createStatisticsFile parameter is set as TRUE in config file
         generateStatistics(platformPerformanceResults, configParams$outputDirectory, configParams$createStatisticsFile, bacterialNameList)
 
@@ -220,54 +219,30 @@ makeRankRmse <- function(configParams) {
   # Get result data from 'result.csv'
   dirpath_result <- paste0(dirpath, "result.csv")
   result_data <- read.table(dirpath_result, header = TRUE, sep = ",")
-  result_data <- as.data.frame(result_data)
   
-  # Sort ascending in RMSE values
+  # Sort ascending by RMSE values
   result_data <- result_data[order(result_data$RMSE), ]
+  
+  # Create rank column
+  result_data <- transform(result_data, rank = 1:nrow(result_data))
+  
+  # Reorder columns with rank as the first column
+  result_data <- result_data[, c("rank", names(result_data)[-ncol(result_data)])]
   
   # Create full path of rankRmse.csv
   filepath_heatmaps <- paste0(dirpath_heatmaps, "rankRmse.csv")
   
-  # Create lines for each rank
-  rank_lines <- character(nrow(result_data))
-  for (i in 1:nrow(result_data)) {
-    rank_line <- paste("rank", i,
-                       "\\",
-                       "\\shortstack{",
-                       platformName,
-                       " / ",
-                       bacterialName,
-                       "}",
-                       "\\",
-                       "RMSE: \\",
-                       result_data[i, 3],
-                       "\\",
-                       "Acc: \\",
-                       result_data[i, 4],
-                       "%",
-                       "\\",
-                       "$\\Delta_{max}$: \\",
-                       result_data[i, 5],
-                       "\\",
-                       "$A_{f}$: \\",
-                       result_data[i, 6],
-                       "\\",
-                       "$B_{f}$: \\",
-                       result_data[i, 7],
-                       "\\",
-                       "\"",
-                       sep = "")
-    rank_lines[i] <- rank_line
-  }
-  
-  # Save rank lines into "rankRmse.csv"
-  cat(paste(rank_lines, collapse = "\n"), file = filepath_heatmaps)
-  cat("\n", file = filepath_heatmaps, append = TRUE)
-  
-  # Print rank lines
-  print(rank_lines)
+  # Save rankRmse.csv
+  cat("\nNOTE: 'rankRmse.csv' is being created or overwritten.\n")
+  write.table(
+    result_data,
+    file = filepath_heatmaps,
+    quote = FALSE,
+    row.names = FALSE,
+    col.names = TRUE,
+    sep = ","
+  )
 }
-
 
 #' assess.quality
 #' @description assess.quality

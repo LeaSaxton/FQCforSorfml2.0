@@ -32,7 +32,6 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
         RSquaredf <- data.frame()
 
         for(platformPerformanceResult in platformPerformanceResults){
-
                 RmseListForMLM <- unlist(lapply(platformPerformanceResult$mlmPerformanceResults, function(x) x$RMSE))
                 RSquaredListForMLM <- unlist(lapply(platformPerformanceResult$mlmPerformanceResults, function(x) x$RSquare))
                 Rmsedf <- cbind(Rmsedf, RmseListForMLM)

@@ -17,12 +17,35 @@
 
 XGBoost.run <- function(regressionParameterList){
         cat('run.XGBoost \n')
+        platformName <- regressionParameterList$platform
+        bacterialName <- regressionParameterList$bacterialName
+        dataSet_removed <- regressionParameterList$dataSet
+        # Modified by Lea Saxton : Ensuring the dataset does not containg NaN and missing values
+        #dataSet_removed <- na.omit(dataSet_removed)
+        # Impute missing values using k-nearest neighbor imputation
+        preProcValues <- preProcess(dataSet_removed, method = "knnImpute")
+        dataSet_removed <- predict(preProcValues, dataSet_removed)
+        # Iterate over each element in the list
+        for (i in seq_along(dataSet_removed)) {
+                if (is.numeric(dataSet_removed[[i]])) {
+                        # Check for NaN values in numeric elements
+                        dataSet_removed[[i]] <- dataSet_removed[[i]][!is.nan(dataSet_removed[[i]])]
+                }
+        }
+        # Create dataSet_TVC with the same row names as dataSet_removed
+        dataSet_TVC <- data.frame(TVC = dataSet_removed[[bacterialName]])
+        rownames(dataSet_TVC) <- row.names(dataSet_removed) # ;cat( str( dataSet_removed ) )
+        dataSet_removed <- dataSet_removed[ ,colnames( dataSet_removed ) != "TVC" ] # ;cat( str( dataSet_TVC ) )
+        # Find common row names
+        common_rows <- intersect(row.names(dataSet_removed), row.names(dataSet_TVC))
+        # Filter dataSet_removed to include only common rows
+        dataSet_removed <- dataSet_removed[row.names(dataSet_removed) %in% common_rows, ]
         if (regressionParameterList$pretreatment == "raw") {
-            dataSet <- regressionParameterList$dataSet
+                dataSet <- cbind(dataSet_removed, dataSet_TVC)
         }else{
             preProcValues <- preProcess(regressionParameterList$dataSet, method = gePretreatmentVector(regressionParameterList$pretreatment))
             regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
-            dataSet <- regressionParameterList$dataSet
+            dataSet <- cbind(dataSet_removed, dataSet_TVC)
         }
         set.seed(90)
         trainIndex <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,
@@ -83,7 +106,7 @@ XGBoost.run <- function(regressionParameterList){
         extracted_path <- sub("/analysis/.*", "", name_path)
         # Create a new parameter with the name of the folder where the models will be saved
         folder_models <- "models"
-        # Changing the path 
+        # Changing the path
         name_path <- file.path(extracted_path, folder_models)
         cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
@@ -125,7 +148,7 @@ XGBoost.run <- function(regressionParameterList){
         # Modified by Shinaro Kinoshita : Add statistics values into result.csv
         bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
         statsReg <- cbind( statsReg, bestHyperParams ) # Then, combine 2 dataframes
-        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir)
+        saveResult(statsReg, regressionParameterList$method, regressionParameterList$outputDir, platformName, bacterialName)
 
         return (result)
 }
