@@ -28,11 +28,10 @@
 randomForest.run <- function(regressionParameterList){
         cat('randomForest.run \n')
         cat(regressionParameterList$pretreatment, '\n') # ;cat( str( regressionParameterList ) )
-        # Modified by Shintaro Kinohita :
         dataSet_removed <- regressionParameterList$dataSet
         bacterialName <- regressionParameterList$bacterialName
         platformName <- regressionParameterList$platform
-        # Modified by Lea Saxton : Ensuring the dataset does not containg NaN and missing values
+        #Ensuring the dataset does not containg NaN and missing values
         dataSet_removed <- na.omit(dataSet_removed)
         # Iterate over each element in the list
         for (i in seq_along(dataSet_removed)) {

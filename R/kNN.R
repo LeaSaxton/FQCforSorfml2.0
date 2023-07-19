@@ -72,9 +72,6 @@ knn.run <- function(regressionParameterList){
           regressionParameterList$dataSet <- predict(preProcValues, regressionParameterList$dataSet)
           #dataSet <- regressionParameterList$dataSet
         }
-        # Impute missing values using k-nearest neighbor imputation
-        preProcValues <- preProcess(dataSet, method = "knnImpute")
-        dataSet <- predict(preProcValues, dataSet)
         set.seed(1821)
         # Partition data into training and test set
         trainIndexList <- createDataPartition(dataSet$TVC, p = regressionParameterList$percentageForTrainingSet,

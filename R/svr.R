@@ -98,12 +98,9 @@ svr.run <- function(regressionParameterList){
                                         "epsilon" = tuningResult$best.parameters["epsilon"][1,1])
 
                 # svr model is created with the best hyperparameters for the current iteration
-                cat('Hello \n')
-                cat("################################################# \n")
                 modelFit <- svm(trainSet, trainSet$TVC, type="eps-regression",
                                 kernel=regressionParameterList$kernel, cost=bestHyperParams$cost, gamma =bestHyperParams$gamma,
                                 epsilon =bestHyperParams$epsilon)
-                cat("hello 2 \n")
                 # Using testSet svr model predicts TVC values
                 predictedValues <- predict(modelFit , testSet)
                 # Performance metrics (RMSE and RSquare) are calculated by comparing the predicted and actual values

@@ -384,7 +384,6 @@ selectFeatures <- function(dataSet, bacterialName) {
 
   # Perform Boruta search
   boruta_output <- Boruta(as.formula(paste(bacterialName, "~ .")), data = na.omit(dataSet), doTrace = 0)
-  cat("hello \n")
   boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
   
   

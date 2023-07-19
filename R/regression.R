@@ -10,6 +10,7 @@
 #' \dontrun{run.analysis(configParams)}
 
 run.analysis <- function(configParams){
+        cat("run.analysis is starting \n")
         fileList <- configParams$platformList$dataFileName
         metaList  <- configParams$platformList$metaFileName
         bacterialNameList <- configParams$platformList$bacterialName
@@ -20,20 +21,21 @@ run.analysis <- function(configParams){
 
         # Initialization of platformPerformanceResults
         platformPerformanceResults <- vector(mode="list", length = length(platformList))
-        
        # platformPerformanceResults <- foreach(i=seq(1:length(platformList))) %dopar% {
         bacterialNameList <- bacterialNameList[!is.na(bacterialNameList)]
         for(i in 1:length(platformList)) {
                 # Modified by Shintaro Kinoshita : add metaList[i] and bacterialNameList[i]
                 # arguments to readDataset function
                 dataSet = readDataset(fileList[i], metaList[i], bacterialNameList[i])
-                print(bacterialNameList)
                 bestRMSE <- 100000
                 bestRSquare <- 0
                 bestMLM <- ""
                 # Modified by Shintaro Kinoshita : add bacterial name list
                 if(configParams$createPCAPlots == TRUE)
-                        generatePCAPlots(dataSet, configParams$outputDirectory, platformList[i], bacterialNameList[i])
+                  bacteriaUniqueList <- unique(bacterialNameList)
+                  for (j in 1:length(bacteriaUniqueList)){
+                        generatePCAPlots(dataSet, configParams$outputDirectory, platformList[i], bacteriaUniqueList[j])
+                  }
 
                 mlmPerformanceResults <- vector(mode="list", length = length(mlmList))
 
