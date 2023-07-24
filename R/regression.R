@@ -103,7 +103,6 @@ run.analysis <- function(configParams){
         #print(platformPerformanceResults)
         # RSquare_Statistics.csv and RMSE_Statistics.csv files are created if createStatisticsFile parameter is set as TRUE in config file
         generateStatistics(platformPerformanceResults, configParams$outputDirectory, configParams$createStatisticsFile, bacterialNameList)
-
         # Performance plots which shows RSquare and  RMSE means through number of iterations are created for each platform
         if(configParams$createPerformancePlots)
                 generatePerformancePlots(platformPerformanceResults, configParams$outputDirectory)
@@ -206,10 +205,10 @@ makeRankRmse <- function(configParams) {
   outDir <- configParams$outputDirectory
   platformName <- configParams$platformList$platformName
   bacterialName <- configParams$platformList$bacterialName
-  
+
   # Define dirpath: Modify outputDir if required
   dirpath <- ifelse(substr(outDir, nchar(outDir), nchar(outDir)) != "/", paste0(outDir, "/"), outDir)
-  
+
   # Create HEATMAP dir
   dirpath_heatmaps <- paste0(dirpath, "HEATMAPS", "/")
   if (!dir.exists(dirpath_heatmaps)) {
@@ -217,23 +216,23 @@ makeRankRmse <- function(configParams) {
     cat("      So it was newly created.\n\n")
     dir.create(dirpath_heatmaps)
   }
-  
+
   # Get result data from 'result.csv'
   dirpath_result <- paste0(dirpath, "result.csv")
   result_data <- read.table(dirpath_result, header = TRUE, sep = ",")
-  
+
   # Sort ascending by RMSE values
   result_data <- result_data[order(result_data$RMSE), ]
-  
+
   # Create rank column
   result_data <- transform(result_data, rank = 1:nrow(result_data))
-  
+
   # Reorder columns with rank as the first column
   result_data <- result_data[, c("rank", names(result_data)[-ncol(result_data)])]
-  
+
   # Create full path of rankRmse.csv
   filepath_heatmaps <- paste0(dirpath_heatmaps, "rankRmse.csv")
-  
+
   # Save rankRmse.csv
   cat("\nNOTE: 'rankRmse.csv' is being created or overwritten.\n")
   write.table(

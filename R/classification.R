@@ -15,11 +15,6 @@ run.analysis.class <- function(configParams){
   metaDataNameList <- configParams$platformList$typeMetaData
   platformList <- configParams$platformList$platformName
   mlmList <- configParams$machineLearningModels
-  print(fileList)
-  print(metaList)
-  print(metaDataNameList)
-  print(platformList)
-  print(mlmList)
   cat("########################\n#### START ANALYSIS ####\n########################\n\n")
   
   # Initialization of platformPerformanceResults
@@ -32,9 +27,10 @@ run.analysis.class <- function(configParams){
     dataSet = readDatasetClass(fileList[i], metaList[i], metaDataNameList[i])
     print(metaDataNameList)
     bestMLM <- ""
+    bestAcc <- 0
 
     if(configParams$createPCAPlots == TRUE)
-      generatePCAPlots(dataSet, configParams$outputDirectory, platformList[i], bacterialNameList[i])
+      generatePCAPlotsClass(dataSet, configParams$outputDirectory, platformList[i])
     
     mlmPerformanceResults <- vector(mode="list", length = length(mlmList))
     
@@ -42,48 +38,31 @@ run.analysis.class <- function(configParams){
     for(j in 1:length(mlmList)) {
       mlm <- mlmList[j]
       print(mlm)
-      # RegressionParameterList is creates as list object which carries necessary parameters for machine learning
+      # classificationParameterList is creates as list object which carries necessary parameters for machine learning
       # models to run.
-      # elements of RegressionParameterList are set to default values if they are not supplied by the user.
+      # elements of classificationParameterList are set to default values if they are not supplied by the user.
       # default values are defined in utils.R
       classificationParameterList <- getClassificationParameters( mlm, dataSet, platformList[i], metaDataNameList[i])
       dataSet <- classificationParameterList$dataSet
       
       #Add configParams$outputDirectory to regressionParameterList
       classificationParameterList$outputDir <- configParams$outputDirectory
-      print(classificationParameterList$outputDir)
-      #cat( str( regressionParameterList ) )
-      
-      # according to method parameter of regressionParameterList different machine learning model is executed in  run.regression
-      # mlmPerformanceResult <- tryCatch(
-      #                 {
-      #                         #withTimeout(run.regression(regressionParameterList), timeout = 10000, onTimeout = "silent")
-      #                         run.regression(regressionParameterList)
-      #                 },
-      #                 error=function(cond) {
-      #                         message(cond)
-      #                         print(sys.calls())
-      #                         return(NULL)
-      #                 }
-      #         )
       
       mlmPerformanceResult <- run.classification(classificationParameterList)
-      stop()
       if(is.null(mlmPerformanceResult)){
-        cat("For ", platformList[i], " Timeout Exception in ", regressionParameterList$method , "(",
-            regressionParameterList$pretreatment, ")\n")
+        cat("For ", platformList[i], " Timeout Exception in ", classificationParameterList$method , "(",
+            classificationParameterList$pretreatment, ")\n")
         
-        mlmPerformanceResult <- list("RMSE" = NA,"RSquare" = NA, method = regressionParameterList$method,
-                                     pretreatment = regressionParameterList$pretreatment, platform = regressionParameterList$platform)
+        mlmPerformanceResult <- list("Accuracy" = NA,method = classificationParameterList$method,
+                                     pretreatment = classificationParameterList$pretreatment, platform = classificationParameterList$platform)
         mlmPerformanceResults[[j]]  <- mlmPerformanceResult
         next
         
       }
       
-      # Through the loop best machine learning model is found according to RMSE performance metric
-      if(!is.null(mlmPerformanceResult) && mlmPerformanceResult$RMSE < bestRMSE){
-        bestRSquare <- mlmPerformanceResult$RSquare
-        bestRMSE <- mlmPerformanceResult$RMSE
+      # Through the loop best machine learning model is found according to Accuracy performance metric
+      if(!is.null(mlmPerformanceResult) && mlmPerformanceResult$Accuracy > bestAcc){
+        bestAcc <- mlmPerformanceResult$Accuracy
         bestMLM <- mlmPerformanceResult$method
       }
       # Machine learning model list updated
@@ -93,21 +72,20 @@ run.analysis.class <- function(configParams){
     
     
     # Best machine learning model for the platform is printed
-    cat("For ", platformList[i], " best model is ", bestMLM , " with RMSE: " , bestRMSE,  " and R-squared: ", bestRSquare, "\n")
+    cat("For ", platformList[i], " best model is ", bestMLM , " with Accuracy: " , bestAcc,"\n")
     
     # Each item in platformPerformanceResults corresponds to one platform,
     # Associated mlmPerformanceResults(performance results of machine learning model list), bestMLM, bestRMSE, bestRSquare which have been
     # created with the previous loop are appended to platformPerformanceResults list.
-    platformPerformanceResults[[i]] <- list("platform" = platformList[i], "bestMLM" = bestMLM, "bestRMSE" = bestRMSE, "bestRSquare" = bestRSquare,
+    platformPerformanceResults[[i]] <- list("platform" = platformList[i], "bestMLM" = bestMLM, "bestAcc" = bestAcc,
                                             "mlmPerformanceResults" = mlmPerformanceResults )
     
   }
-  # RSquare_Statistics.csv and RMSE_Statistics.csv files are created if createStatisticsFile parameter is set as TRUE in config file
-  generateStatistics(platformPerformanceResults, configParams$outputDirectory, configParams$createStatisticsFile, bacterialNameList)
-  
+  # Accuracy_Statistics.csv file are created if createStatisticsFile parameter is set as TRUE in config file
+  generateStatisticsClass(platformPerformanceResults, configParams$outputDirectory, configParams$createStatisticsFile)
   # Performance plots which shows RSquare and  RMSE means through number of iterations are created for each platform
   if(configParams$createPerformancePlots)
-    generatePerformancePlots(platformPerformanceResults, configParams$outputDirectory)
+    generatePerformancePlotsClass(platformPerformanceResults, configParams$outputDirectory)
   
 }
 
@@ -191,22 +169,20 @@ run.classification <- function(classificationParameterList){
   
 }
 
-#' makeRankRmse
-#' @description make rankRmse.csv in /HEATMAPS/ dir.
-#' @author Shintaro Kinoshita \email{shintaro.kinoshita.584@@cranfield.ac.uk}
+#' makeRankAccuracy
+#' @description make rankAccuracy.csv in /HEATMAPS/ dir.
+#' @author Lea Saxton \email{lea.saxton.831@@cranfield.ac.uk}
 #' @param outputDirectory  output directory
 #' @return
 #' @export
 #'
 #' @examples
-#' \dontrun{makeRankRmse(outputDirectory)}
+#' \dontrun{makeRankAccuracy(outputDirectory)}
 
-#Modified by Lea Saxton : Changing the structure of the rankRmse.csv file
-makeRankRmse <- function(configParams) {
+makeRankAccuracy <- function(configParams) {
   # Define output directory, platform name, and bacterial name
   outDir <- configParams$outputDirectory
   platformName <- configParams$platformList$platformName
-  bacterialName <- configParams$platformList$bacterialName
   
   # Define dirpath: Modify outputDir if required
   dirpath <- ifelse(substr(outDir, nchar(outDir), nchar(outDir)) != "/", paste0(outDir, "/"), outDir)
@@ -222,52 +198,29 @@ makeRankRmse <- function(configParams) {
   # Get result data from 'result.csv'
   dirpath_result <- paste0(dirpath, "result.csv")
   result_data <- read.table(dirpath_result, header = TRUE, sep = ",")
-  result_data <- as.data.frame(result_data)
+
+  # Sort descending by Accuracy values
+  result_data <- result_data[order(-result_data$Acc), ]
   
-  # Sort ascending in RMSE values
-  result_data <- result_data[order(result_data$RMSE), ]
+  # Create rank column
+  result_data <- transform(result_data, rank = 1:nrow(result_data))
+  
+  # Reorder columns with rank as the first column
+  result_data <- result_data[, c("rank", names(result_data)[-ncol(result_data)])]
   
   # Create full path of rankRmse.csv
-  filepath_heatmaps <- paste0(dirpath_heatmaps, "rankRmse.csv")
+  filepath_heatmaps <- paste0(dirpath_heatmaps, "rankAccuracy.csv")
   
-  # Create lines for each rank
-  rank_lines <- character(nrow(result_data))
-  for (i in 1:nrow(result_data)) {
-    rank_line <- paste("rank", i,
-                       "\\",
-                       "\\shortstack{",
-                       platformName,
-                       " / ",
-                       bacterialName,
-                       "}",
-                       "\\",
-                       "RMSE: \\",
-                       result_data[i, 3],
-                       "\\",
-                       "Acc: \\",
-                       result_data[i, 4],
-                       "%",
-                       "\\",
-                       "$\\Delta_{max}$: \\",
-                       result_data[i, 5],
-                       "\\",
-                       "$A_{f}$: \\",
-                       result_data[i, 6],
-                       "\\",
-                       "$B_{f}$: \\",
-                       result_data[i, 7],
-                       "\\",
-                       "\"",
-                       sep = "")
-    rank_lines[i] <- rank_line
-  }
-  
-  # Save rank lines into "rankRmse.csv"
-  cat(paste(rank_lines, collapse = "\n"), file = filepath_heatmaps)
-  cat("\n", file = filepath_heatmaps, append = TRUE)
-  
-  # Print rank lines
-  print(rank_lines)
+  # Save rankRmse.csv
+  cat("\nNOTE: 'rankAccuracy.csv' is being created or overwritten.\n")
+  write.table(
+    result_data,
+    file = filepath_heatmaps,
+    quote = FALSE,
+    row.names = FALSE,
+    col.names = TRUE,
+    sep = ","
+  )
 }
 
 
@@ -300,7 +253,7 @@ assess.quality.class <- function(configFile=configFile){
   
   run.analysis.class(configParams)
   
-  # Modified by Shintaro Kinoshita : Create rank RMSE file
-  makeRankRmse(configParams)
+  # Create rank Accuracy file
+  makeRankAccuracy(configParams)
   
 }

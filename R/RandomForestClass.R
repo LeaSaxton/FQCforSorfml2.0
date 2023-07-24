@@ -24,6 +24,8 @@ randomForestClass.run <- function(classificationParameterList){
     cat(classificationParameterList$pretreatment, '\n') 
     dataSet_removed <- classificationParameterList$dataSet
     metaDataName <- classificationParameterList$metaDataName
+    platformName <- classificationParameterList$platform
+    outDir <- classificationParameterList$outputDir
     # Ensuring the dataset does not containg NaN and missing values
     dataSet_removed <- na.omit(dataSet_removed)
     # Iterate over each element in the list
@@ -79,6 +81,13 @@ randomForestClass.run <- function(classificationParameterList){
     #Define the statistics regression list
     statsClass <- NULL
     
+    # Define an empty data frame for bestHyperParams
+    bestHyperParams <- data.frame(bestK = numeric(0))
+    
+    # Define empty vectors to store mtry and ntree values
+    mtry_values <- c()
+    ntree_values <- c()
+    
     for(i in 1:classificationParameterList$numberOfIterations) {
       # training set and test set are created
       trainSet <- dataSet[trainIndexList[,i],]
@@ -95,6 +104,7 @@ randomForestClass.run <- function(classificationParameterList){
       # list of bestHyperParams is created with best hyperparameters
       bestHyperParams <- list("mtry"=tuningResult$mtry,"ntree"=tuningResult$ntree)
       
+      
       # RandomForest model is created with the best hyperparameters for the current iterations
       modelFit <- randomForest(x = trainSet_x, y = trainSet_y, xtest = testSet_x, ytest = testSet_y,
                                ntree = bestHyperParams$ntree, mtry = bestHyperParams$mtry, keep.forest = TRUE)
@@ -104,16 +114,35 @@ randomForestClass.run <- function(classificationParameterList){
       
       # Calculate accuracy of the predictions
       Accuracy <- Accuracy(testSet$sensory, predictedValues)
-      print(Accuracy)
-  
+      
+      # Calculate the confusion matrix
+      conf_matrix <- confusionMatrix(predictedValues, testSet$sensory)
+      
+      #plot the confusion matrix 
+      confusion_matrix <- confusion_matrix(conf_matrix, platformName, outDir, "RF" )
+      
       if (Accuracy > bestAcc) {
         bestAcc  <- Accuracy
         bestModel <- modelFit
-        bestHyperParams <- list("k"=modelFit$bestTune[1,1])
+        # Add the bestK value to the bestHyperParams data frame
+        bestHyperParams <- rbind(bestHyperParams, data.frame(bestK = modelFit$bestTune[1, 1]))
+        # Store mtry and ntree values from tuning into the vectors
+        mtry_values <- tuningResult$mtry
+        ntree_values <- tuningResult$ntree
         statsClass <- statsClassification( predictedValues, testSet$sensory )
       }
       
+      # Calculate the means of each metric
+      means <- colMeans(statsClass[, c("Accuracy", "Precision", "Recall", "F1_Score")])
+      
+      # Create a new data frame StatsClass with the means
+      statsClass <- data.frame(Accuracy = means["Accuracy"],
+                               Precision = means["Precision"],
+                               Recall = means["Recall"],
+                               F1_Score = means["F1_Score"])
+
       performanceResults[[i]] <- list("Accuracy" = Accuracy, "bestHyperParams" = bestHyperParams)
+      }
       # Make "class" dir to save RDA files
       name_path <- classificationParameterList$outputDir
       #Extract the desired part of the path and define a new path to save the models
@@ -139,7 +168,6 @@ randomForestClass.run <- function(classificationParameterList){
       #Save the best model and its hyperparameters
       name_platform <- classificationParameterList$platform
       name_model    <- classificationParameterList$method
-      name_bacteria <- classificationParameterList$bacterialName
       name_file     <- paste0( name_platform,'_', name_model, ".rda" )
       name_path_rds <- paste0( name_path, "/", name_file )
       #saveRDS( bestModel, file = name_file )
@@ -153,12 +181,13 @@ randomForestClass.run <- function(classificationParameterList){
       
       # Add statistics values into result.csv
       # statsClass will contains 'k value'
-      bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
-      statsClass <- cbind( statsClass, bestHyperParams ) # Then, combine 2 dataframes
-      saveResultClass(statsClass, classificationParameterList$method, classificationParameterList$outputDir)
+      #bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
+      statsClass <- cbind(statsClass, mtry = mtry_values, ntree = ntree_values)
+      cat("statsClass : \n")
+      print(statsClass)
+      saveResultClass(statsClass, classificationParameterList$method, classificationParameterList$outputDir, platformName)
       
-    } 
-    return(createPerformanceStatistics(performanceResults, classificationParameterList ))
+    return(createPerformanceStatisticsClass(performanceResults, classificationParameterList ))
     
 }
   

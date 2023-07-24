@@ -44,7 +44,7 @@ evalMetrics <- function(true, predicted) {
   
 }
 
-#' gePretreatmentVectorClass
+#' getPretreatmentVectorClass
 #' @description converts string of pretreatment parameter to vector to be used
 #' in data scaling before machine learning modeling
 #' @author Lea Saxton \email{lea.saxton.831@@cranfield.ac.uk}
@@ -218,7 +218,6 @@ readConfigFileClass<-function(configFile){
 # Modified by Shintaro Kinoshita : add "metaFileName" and "bacterialName" arguments to "readData" function
 readDatasetClass<-function(dataFileName, metaFileName, metaDataName){
   cat("readDataSet function is starting \n")
-  print(dataFileName)
   fileExtension <- tolower(file_ext(dataFileName))
   # According to file extension different method is used to read data
   if(fileExtension == "xlsx")
@@ -243,42 +242,29 @@ readDatasetClass<-function(dataFileName, metaFileName, metaDataName){
   # Modified by Lea Saxton : Read metadata
   rawMetaData <- read.csv( metaFileName, header = TRUE )
 
-  # Check if column names contain "Sample", "sample", "Samples", or "samples"
-  if ("Sample" %in% colnames(rawMetaData) ||
-      "sample" %in% colnames(rawMetaData) ||
-      "Samples" %in% colnames(rawMetaData) ||
-      "samples" %in% colnames(rawMetaData)) {
-    # Identify the column name to use as row names
-    sampleColumn <- intersect(c("Sample", "sample", "Samples", "samples"), colnames(rawMetaData))
+  # Define the regular expression pattern to match sample column names
+  pattern <- "^[Ss]ample.*"
+  
+  # Identify columns that match the pattern in the metadata
+  sampleColumn <- grepl(pattern, colnames(rawMetaData))
+  # Get the column name(s) where sampleColumn is TRUE
+  sampleColumnNames <- colnames(rawMetaData)[sampleColumn]
+  # Remove the sampleColumn(s) from the data frame
+  rawMetaData <- as.data.frame(rawMetaData[, !sampleColumn])
+  colnames(rawMetaData) <- metaDataName
     # Make the sampleColumn the row names
     #rownames(rawMetaData) <- rawMetaData[[sampleColumn]]
     row_names2 <- make.unique(rownames(rawMetaData))
     rownames(rawMetaData) <- row_names2
-    # Remove the sampleColumn from the data frame
-    rawMetaData <- as.data.frame(rawMetaData[, -which(colnames(rawMetaData) == sampleColumn)])
-    colnames(rawMetaData) <- metaDataName
-  }
-  # Remove the last letter from row names in dataSet
-  #row.names(dataSet) <- sub(".$", "", row.names(dataSet))
-  # Remove the last letter from row names in rawMetaData
-  #row.names(rawMetaData) <- sub(".$", "", row.names(rawMetaData))
   # Find common row names
   common_rows <- intersect(row.names(dataSet), row.names(rawMetaData))
-
   # Filter dataSet_removed to include only common rows
-  
   dataSet <- dataSet[row.names(dataSet) %in% common_rows, ]
-  
   # Filter rawMetaData to include only common rows
   rawMetaData <- as.data.frame(rawMetaData[row.names(rawMetaData) %in% common_rows, ])
   colnames(rawMetaData) <- metaDataName
   # Combine the datasets using cbind
   dataSet <- cbind(dataSet, rawMetaData)
-  print(dataSet)
-  print(rawMetaData)
-  print(dim(dataSet))
-  #if(any(!is.na(as.numeric(colnames(dataSet)))))
-  #colnames(dataSet)[colnames(dataSet)!="TVC"] <- paste0("a", colnames(dataSet),"")
   # Number of features is reduced by feature selection,
   # import in processing FTIR data
   if (ncol(dataSet) > 200) {
@@ -325,27 +311,19 @@ createPerformanceStatisticsClass <- function(performanceResults, classificationP
   meanAcc <- round(mean(AccList), 4)
   cumulativeMeanAccList <- cumsum(AccList) / seq_along(AccList)
   names(cumulativeMeanAccList) <- seq_along(AccList)
-  
-  # RSquareList contains list of RSquare for each iteration
-  RSquareList <- unlist(lapply(performanceResults, function(x) x$RSquare))
-  meanRSquare <- round(mean(RSquareList), 4)
-  cumulativeMeanRSquareList <- cumsum(RSquareList) / seq_along(RSquareList)
-  names(cumulativeMeanRSquareList) <- seq_along(RSquareList)
-  
+
   bestHyperParamsList <- NULL
   if(!is.null(performanceResults[[1]]$bestHyperParams))
     bestHyperParamsList <- unlist(lapply(performanceResults, function(x) x$bestHyperParams))
   
-  regressionParameterList$methodWithDataScaling <- paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ")")
+  classificationParameterList$methodWithDataScaling <- paste0(classificationParameterList$method, "(", classificationParameterList$pretreatment,  ")")
   
-  cat(paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ") mean RMSE: ", meanRMSE, '\n'))
-  cat(paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ") mean RSquare: ", meanRSquare, '\n'))
+  cat(paste0(classificationParameterList$method, "(", classificationParameterList$pretreatment,  ") mean Accuracy: ", meanAcc, '\n'))
   
   # Result object is returned to run.regression function in regression.R, which contains whole performance information for the machine learning model
-  result <- list("RMSEList"= RMSEList, "cumulativeMeanRMSEList" = cumulativeMeanRMSEList, "RMSE" = meanRMSE,
-                 "RSquareList" = RSquareList, "cumulativeMeanRSquareList" = cumulativeMeanRSquareList, "RSquare" = meanRSquare,
-                 "bestHyperParamsList" = bestHyperParamsList, method = regressionParameterList$method, platform = regressionParameterList$platform,
-                 "pretreatment" = regressionParameterList$pretreatment)
+  result <- list("AccList"= AccList, "cumulativeMeanAccList" = cumulativeMeanAccList, "Accuracy" = meanAcc,
+                 "bestHyperParamsList" = bestHyperParamsList, method = classificationParameterList$method, platform = classificationParameterList$platform,
+                 "pretreatment" = classificationParameterList$pretreatment)
 }
 
 #' selectFeaturesClass
@@ -435,9 +413,10 @@ statsClassification <- function(predicted, observed) {
   
   # Calculate metrics
   accuracy <- sum(diag(cm)) / sum(cm)
-  precision <- diag(cm) / colSums(cm)
-  recall <- diag(cm) / rowSums(cm)
+  precision <- ifelse(colSums(cm) == 0, 0, diag(cm) / colSums(cm))
+  recall <- ifelse(rowSums(cm) == 0, 0, diag(cm) / rowSums(cm))
   f1_score <- 2 * precision * recall / (precision + recall)
+  f1_score[is.na(f1_score)] <- 0  # Handling NaN values for F1 Score
   
   # Create a data frame with the metrics
   metrics <- data.frame(Accuracy = accuracy, Precision = precision, Recall = recall, F1_Score = f1_score)
@@ -457,10 +436,11 @@ statsClassification <- function(predicted, observed) {
 #' @examples
 #' \dontrun{saveResultClass(statsClass, outDir)}
 
-saveResultClass <- function(statsClass, method, outputDir) {
+saveResultClass <- function(statsClass, method, outputDir, platform) {
   # make a data frame which is added to 'result.csv'
   df <- data.frame(
     method = method,
+    platform = platform,
     Acc = statsClass$Accuracy,
     Precision = statsClass$Precision,
     Recall = statsClass$Recall,

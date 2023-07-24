@@ -111,17 +111,18 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
           print("Rmsedf_ForHeatMap is NULL")
         }
         if (!is.null(nrow(Rmsedf_ForHeatMap)) && !is.null(ncol(Rmsedf_ForHeatMap)) && nrow(Rmsedf_ForHeatMap) >= 2 && ncol(Rmsedf_ForHeatMap) >= 2){
+
                 # Plot best prediction method for each technique and medium according to rmse
-                pdf(paste0(outputDir, "/Heatmap_ML_methods.pdf"))
+                pdf(paste0(outputDir, "/Heatmap_ML_methods.pdf"), width = 12, height = 10)
                 par(c(5.1,4.1,4.1,2.1))
 
                 heatmap.2(as.matrix(Rmsedf_ForHeatMap), Rowv=FALSE, key=TRUE,
                           cexCol = 1, cexRow=1,
-                          margins=c(8,14),
-                          cellnote = as.matrix(Rmsedf_ForHeatMap), notecol="black", notecex=0.8,
+                          margins=c(8,10),
+                          cellnote = as.matrix(Rmsedf_ForHeatMap), notecol="black", notecex=0.5,
                           col=colorRampPalette(c("green", "red")), breaks = seq(0.3, 1.3, 0.1),
                           main = paste0("ML methods by RMSE"),
-                          scale = "none", density.info="none", trace="none", dendrogram="none", Colv="NA",
+                          scale = "none", density.info="none", trace="none", dendrogram="none", Colv="NA"
                 )
                 dev.off()
         }
