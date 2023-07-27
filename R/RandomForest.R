@@ -112,9 +112,6 @@ randomForest.run <- function(regressionParameterList){
 
                 performanceResults[[i]] <- list("RMSE" = RMSE, "RSquare" = RSquare, "bestHyperParams" = bestHyperParams)
 
-                # Modified by Shintaro Kinoshita : Append model to the list
-                #modelFit$call$formula <- as.character(modelFit$call$formula)
-                #all_models[[i]] <- modelFit
         }
         # Modified by Shintaro Kinoshita : Make "reg" dir to save RDS files
         name_path <- regressionParameterList$outputDir
@@ -130,7 +127,6 @@ randomForest.run <- function(regressionParameterList){
         } else {
                 name_path <- paste0( name_path, "/reg" )
         }
-        #cat( paste0( name_path, "\n" ) )
 
         # Modified by Shintaro kinoshita : check if the "reg" file exists, if not, create
         if ( dir.exists( name_path ) == FALSE ) {
@@ -152,14 +148,6 @@ randomForest.run <- function(regressionParameterList){
         name_path_txt <- paste0( name_path, "/", name_file )
         #write.table( bestRMSE, file = name_file, row.names = FALSE, col.names = FALSE )
         write.table( bestRMSE, file = name_path_txt, row.names = FALSE, col.names = FALSE )
-
-        # Modified by Shintaro Kinoshita : Make model file in RDS format.
-        #name_platform <- regressionParameterList$platform
-        #name_model    <- regressionParameterList$method
-        #name_file     <- paste0( name_platform, "_", name_model, ".rds" )
-        #name_path     <- paste0( "./machineLearning/models/", name_file )
-        #saveRDS( all_models, file = name_path )
-        #saveRDS( all_models, file = name_file )
 
         # Modified by Shinaro Kinoshita : Add statistics values into result.csv
         # statsReg will contains 'k value'

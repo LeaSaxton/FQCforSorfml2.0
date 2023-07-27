@@ -120,8 +120,8 @@ run.classification <- function(classificationParameterList){
     
   }
   if(method == "KNN"){
-    cat('knn.run is starting \n')
-    result<-knn.run(regressionParameterList)
+    cat('knnClass.run is starting \n')
+    result<-knnClass.run(classificationParameterList)
   }
   if(method == "RF"){
     cat('randomForestClass.run is starting \n')

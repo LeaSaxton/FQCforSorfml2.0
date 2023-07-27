@@ -179,8 +179,7 @@ confusion_matrix <- function(conf_matrix, platform_name, outDir, method){
         # Save the confusion matrix plot as a PDF
         ggsave(filename = outputFile, plot = conf_matrix_plot, width = 8, height = 6)
 
-        # Close the PDF device
-        dev.off()
+        cat("confusion_matrix function is finished \n")
 }
 
 

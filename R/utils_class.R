@@ -256,15 +256,20 @@ readDatasetClass<-function(dataFileName, metaFileName, metaDataName){
     #rownames(rawMetaData) <- rawMetaData[[sampleColumn]]
     row_names2 <- make.unique(rownames(rawMetaData))
     rownames(rawMetaData) <- row_names2
+    
   # Find common row names
   common_rows <- intersect(row.names(dataSet), row.names(rawMetaData))
+  
   # Filter dataSet_removed to include only common rows
   dataSet <- dataSet[row.names(dataSet) %in% common_rows, ]
+  
   # Filter rawMetaData to include only common rows
   rawMetaData <- as.data.frame(rawMetaData[row.names(rawMetaData) %in% common_rows, ])
   colnames(rawMetaData) <- metaDataName
+  
   # Combine the datasets using cbind
   dataSet <- cbind(dataSet, rawMetaData)
+  
   # Number of features is reduced by feature selection,
   # import in processing FTIR data
   if (ncol(dataSet) > 200) {
@@ -408,6 +413,7 @@ removeRedundantFeatures<-function(dataSet){
 
 statsClassification <- function(predicted, observed) {
   cat("statsClassification function is starting \n")
+  
   # Calculate confusion matrix
   cm <- table(predicted, observed)
   
@@ -415,14 +421,22 @@ statsClassification <- function(predicted, observed) {
   accuracy <- sum(diag(cm)) / sum(cm)
   precision <- ifelse(colSums(cm) == 0, 0, diag(cm) / colSums(cm))
   recall <- ifelse(rowSums(cm) == 0, 0, diag(cm) / rowSums(cm))
+  
+  # Handle NaN values for precision and recall
+  precision[is.nan(precision)] <- 0
+  recall[is.nan(recall)] <- 0
+  
+  # Calculate F1 Score
   f1_score <- 2 * precision * recall / (precision + recall)
-  f1_score[is.na(f1_score)] <- 0  # Handling NaN values for F1 Score
+  
+  # Handle NaN values for F1 Score
+  f1_score[is.nan(f1_score)] <- 0
   
   # Create a data frame with the metrics
   metrics <- data.frame(Accuracy = accuracy, Precision = precision, Recall = recall, F1_Score = f1_score)
-  print(metrics)
   return(round(metrics, 3))
 }
+
 
 
 
@@ -437,6 +451,17 @@ statsClassification <- function(predicted, observed) {
 #' \dontrun{saveResultClass(statsClass, outDir)}
 
 saveResultClass <- function(statsClass, method, outputDir, platform) {
+  cat("saveresultsClass function is starting \n")
+  print(statsClass)
+  # Calculate the means of each metric
+  means <- colMeans(statsClass[, c("Accuracy", "Precision", "Recall", "F1_Score")])
+  
+  # Create a new data frame StatsClass with the means
+  statsClass <- data.frame(Accuracy = means["Accuracy"],
+                           Precision = means["Precision"],
+                           Recall = means["Recall"],
+                           F1_Score = means["F1_Score"])
+  print(statsClass)
   # make a data frame which is added to 'result.csv'
   df <- data.frame(
     method = method,
