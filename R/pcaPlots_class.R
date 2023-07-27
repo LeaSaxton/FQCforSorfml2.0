@@ -9,7 +9,7 @@
 #' @examples
 #' \dontrun{generatePCAPlotsClass(dataSet, outputDir, platform)}
 
-generatePCAPlotsClass <- function(dataSet, outputDir, platform) {
+generatePCAPlotsClass <- function(dataSet, outputDir, platform, method) {
         cat("generatePCAPlotsClass is starting \n")
 
         if (!file.exists(outputDir))
@@ -44,7 +44,7 @@ generatePCAPlotsClass <- function(dataSet, outputDir, platform) {
                       aEV[2] / sum(aEV) * 100,
                       aEV[3] / sum(aEV) * 100)
 
-        outputFile <- paste0(outputDir, "/", platform, "_PCA.pdf")
+        outputFile <- paste0(outputDir, "/", platform,"_",method,"_PCA.pdf")
         pdf(outputFile)
 
 

@@ -172,8 +172,6 @@ randomForestClass.run <- function(classificationParameterList){
       # statsClass will contains 'k value'
       #bestHyperParams <- data.frame( bestK = c( 0 ) ) # Dummy dataframe for 'k value'
       statsClass <- cbind(statsClass, mtry = mtry_values, ntree = ntree_values)
-      cat("statsClass : \n")
-      print(statsClass)
       saveResultClass(statsClass, classificationParameterList$method, classificationParameterList$outputDir, platformName)
 
     return(createPerformanceStatisticsClass(performanceResults, classificationParameterList ))

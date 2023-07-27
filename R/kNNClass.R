@@ -1,30 +1,26 @@
-#' Main function to calculate performance of k-nearest neighbors model
+#' Main function to calculate performance of k-nearest neighbors model for classification
 #' @description After pretreatment on dataset this function calculates performance
 #' of k-nearest neighbors model through iterations and returns performance metrics.
 #' In each iteration different partitioning is done on dataset to create
 #' training and validation datasets, cross-validation tuning is done on training
 #' dataset to find optimum k-value
-#' @author Ozlem Karadeniz \email{ozlem.karadeniz.283@@cranfield.ac.uk}
-#' @param regressionParameterList  a list which contains
+#' @author Lea saxton \email{lea.saxton.831@@cranfield.ac.uk}
+#' @param classificationParameterList  a list which contains
 #' number_of_iterations: number of iterations to calculate performance
 #' pretreatment: data pretreatment method (auto-scale, mean-center or range-scale
 #' is supported)
 #' percentageForTrainingSet: percentage of samples in training dataset
 #' dataSet: dataFrame which is read from data file and subjected to the model.
 #' @return a list containing performance results
-#' RMSEList: a list which contains RMSE of each iteration
-#' cumulativeRMSEList: a list which contains cumulative RMSE mean in
+#' AccList: a list which contains RMSE of each iteration
+#' cumulativeAccuracyList: a list which contains cumulative RMSE mean in
 #' each iteration
-#' RMSE: mean RMSE of all iterations
-#' RSquareList: a list which contains RSquare of each iteration
-#' cumulativeRSquareList : a list which contains cumulative RSquare mean in
-#' each iteration
-#' RSquare: mean RSquare of all iterations
+#' Accuracy: mean accuracy of all iterations
 #' bestHyperParamsList: a list containing best k-value for each iteration
 #' @import caret
 #'
 #' @examples
-#' \dontrun{knn.run(regressionParameterList)}
+#' \dontrun{knnClass.run(classificationParameterList)}
 
 knnClass.run <- function(classificationParameterList){
         cat('knnClass.run \n')

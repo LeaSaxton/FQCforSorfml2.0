@@ -25,19 +25,22 @@ run.analysis.class <- function(configParams){
   for(i in 1:length(platformList)) {
     # arguments to readDataset function
     dataSet = readDatasetClass(fileList[i], metaList[i], metaDataNameList[i])
-    print(metaDataNameList)
     bestMLM <- ""
     bestAcc <- 0
-
+    
+    # Extract the first part of each element
+    methods <- sapply(mlmList, function(x) strsplit(x, ":")[[1]][1])
+    print(methods)
+    for (j in 1:length(methods)){
     if(configParams$createPCAPlots == TRUE)
-      generatePCAPlotsClass(dataSet, configParams$outputDirectory, platformList[i])
+      generatePCAPlotsClass(dataSet, configParams$outputDirectory, platformList[i],methods[j])
+    }
     
     mlmPerformanceResults <- vector(mode="list", length = length(mlmList))
     
     # For each platforms and machine learning models following code is executed
     for(j in 1:length(mlmList)) {
       mlm <- mlmList[j]
-      print(mlm)
       # classificationParameterList is creates as list object which carries necessary parameters for machine learning
       # models to run.
       # elements of classificationParameterList are set to default values if they are not supplied by the user.
@@ -84,8 +87,10 @@ run.analysis.class <- function(configParams){
   # Accuracy_Statistics.csv file are created if createStatisticsFile parameter is set as TRUE in config file
   generateStatisticsClass(platformPerformanceResults, configParams$outputDirectory, configParams$createStatisticsFile)
   # Performance plots which shows RSquare and  RMSE means through number of iterations are created for each platform
+  for (j in 1:length(methods)){
   if(configParams$createPerformancePlots)
-    generatePerformancePlotsClass(platformPerformanceResults, configParams$outputDirectory)
+    generatePerformancePlotsClass(platformPerformanceResults, configParams$outputDirectory, methods[j] )
+  }
   
 }
 
@@ -127,9 +132,9 @@ run.classification <- function(classificationParameterList){
     cat('randomForestClass.run is starting \n')
     result<-randomForestClass.run(classificationParameterList)
   }
-  if(method == "PLS" || method == "PCR"){
-    cat(paste0("pls.pcr.run is starting for ", method ,"\n"))
-    result<-pls.pcr.run(regressionParameterList)
+  if(method == "LDA"){
+    cat(paste0("LDA.run is starting for ", method ,"\n"))
+    result<-LDA.run(classificationParameterList)
   }
   if(method == "RT"){
     cat('regressionTree.run is starting \n')
