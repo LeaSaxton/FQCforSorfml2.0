@@ -132,7 +132,7 @@ generatePerformancePlotsClass <- function(platformPerformanceResults, outputDir,
 
                 if(generatePlot == TRUE){
 
-                        cat("Creating performance plots for ", platformPerformanceResult$platform," ", method, "\n"  )
+                        cat("Creating performance plots for ", platformPerformanceResult$platform, "\n"  )
 
                         mergedCumulativeAccList[is.na(mergedCumulativeAccList)] = 0
 
@@ -141,9 +141,9 @@ generatePerformancePlotsClass <- function(platformPerformanceResults, outputDir,
                                                          if(!is.null(x$cumulativeMeanAccList) && x$max == TRUE)
                                                                  return(x$method)
                                                  }))
-                        generatePerformancePlotClass(data = mergedCumulativeAccList*100, plotName = paste0("Accuracy Means for ", platformPerformanceResult$platform, " ", method),
+                        generatePerformancePlotClass(data = mergedCumulativeAccList*100, plotName = paste0("Accuracy Means for ", platformPerformanceResult$platform),
                                                 dataNames = mlmList,
-                                                file = paste(outputDir, "/", platformPerformanceResult$platform,"_",method,"_Accuracy_Means.pdf", sep = ""))
+                                                file = paste(outputDir, "/", platformPerformanceResult$platform,"_Accuracy_Means.pdf", sep = ""))
 
 
                 }

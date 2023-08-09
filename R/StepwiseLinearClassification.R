@@ -1,9 +1,8 @@
-#' Main function to calculate performance of k-nearest neighbors model for classification
+#' Main function to calculate performance of Stepwise Linear Classification model for classification
 #' @description After pretreatment on dataset this function calculates performance
-#' of k-nearest neighbors model through iterations and returns performance metrics.
+#' of SLC model through iterations and returns performance metrics.
 #' In each iteration different partitioning is done on dataset to create
-#' training and validation datasets, cross-validation tuning is done on training
-#' dataset to find optimum k-value
+#' training and validation datasets.
 #' @author Lea saxton \email{lea.saxton.831@@cranfield.ac.uk}
 #' @param classificationParameterList  a list which contains
 #' number_of_iterations: number of iterations to calculate performance
@@ -16,14 +15,12 @@
 #' cumulativeAccuracyList: a list which contains cumulative RMSE mean in
 #' each iteration
 #' Accuracy: mean accuracy of all iterations
-#' bestHyperParamsList: a list containing best k-value for each iteration
-#' @import caret
+#' @import leaps
 #'
 #' @examples
-#' \dontrun{knnClass.run(classificationParameterList)}
-
-knnClass.run <- function(classificationParameterList){
-        cat('knnClass.run \n')
+#' \dontrun{PLSDA.run(classificationParameterList)}
+SLC.run <- function(classificationParameterList){
+        cat('SLC.run \n')
         dataSet_removed <- classificationParameterList$dataSet
         platformName <- classificationParameterList$platform
         metaDataType <- classificationParameterList$metaDataName
@@ -44,9 +41,9 @@ knnClass.run <- function(classificationParameterList){
           }
         }
         if (metaDataType %in% colnames(dataSet_removed)) {
-                dataSet_sensory <- data.frame(sensory = dataSet_removed[, metaDataType])
-                rownames(dataSet_sensory) <- row.names(dataSet_removed)
-                dataSet_removed <- dataSet_removed[, !(colnames(dataSet_removed) == metaDataType)]
+          dataSet_sensory <- data.frame(sensory = dataSet_removed[, metaDataType])
+          rownames(dataSet_sensory) <- row.names(dataSet_removed)
+          dataSet_removed <- dataSet_removed[, !(colnames(dataSet_removed) == metaDataType)]
         } else {
           cat("The metaDatType column does not exist in the dataSet_removed data frame.\n")
         }
@@ -95,52 +92,58 @@ knnClass.run <- function(classificationParameterList){
         #Define the statistics classification list
         statsClass <- NULL
         for(i in 1:classificationParameterList$numberOfIterations) {
-                # training set and test set are created
-                trainSet <- dataSet[trainIndexList[,i],]
-                testSet <- dataSet[-trainIndexList[,i],]
+          # training set and test set are created
+          trainSet <- dataSet[trainIndexList[,i],]
+          testSet <- dataSet[-trainIndexList[,i],]
 
-                # Check if there are two columns named "TVC" in trainSet
-                if (sum(colnames(trainSet) == "sensory") == 2) {
-                  cat("there are 2 columns 'sensory' in trainSet \n")
-                  # Remove one of the "sensory" columns
-                  trainSet <- trainSet[, -which(colnames(trainSet) == "sensory")[1]]
-                }
+          # Check if there are two columns named "TVC" in trainSet
+          if (sum(colnames(trainSet) == "sensory") == 2) {
+            cat("there are 2 columns 'sensory' in trainSet \n")
+            # Remove one of the "sensory" columns
+            trainSet <- trainSet[, -which(colnames(trainSet) == "sensory")[1]]
+          }
 
-                # Check if there are two columns named "sensory" in testSet
-                if (sum(colnames(testSet) == "sensory") == 2) {
-                  cat("there are 2 columns 'sensory' in testSet \n")
-                  # Remove one of the "sensory" columns
-                  testSet <- testSet[, -which(colnames(testSet) == "sensory")[1]]
-                }
-                # Before training resampling method is set as 5 fold cross validation
-                trControl <- trainControl(method = "cv", number = 5)
-                # model is trained with trainSet using 5 fold cross validation
-                # as tuneGrid parameter possible k values is supplied,  train function finds the optimum k-value.
-                modelFit <- caret::train(sensory ~ . , method='knn', data=trainSet,
-                                         tuneGrid=expand.grid(k=1:maxK), trControl=trControl)
-                # list of bestHyperParams is created with best hyperparameters
-                bestHyperParams <- list("k"=modelFit$bestTune[1,1])
+          # Check if there are two columns named "sensory" in testSet
+          if (sum(colnames(testSet) == "sensory") == 2) {
+            cat("there are 2 columns 'sensory' in testSet \n")
+            # Remove one of the "sensory" columns
+            testSet <- testSet[, -which(colnames(testSet) == "sensory")[1]]
+          }
 
+          # Perform Stepwise Linear Classification
+          lm_model <- lm(sensory ~ ., data = trainSet)  # Fit initial linear model with all predictors
 
-                # Using testSet knn model predicts sensory values
-                predictedValues <- predict(modelFit, testSet)
+          # Check for multicollinearity and remove highly correlated predictors
+          if (any(findCorrelation(cor(trainSet[, -which(names(trainSet) == "sensory")])) > 0.8)) {
+            cat("Warning: Multicollinearity detected. Removing highly correlated predictors.\n")
+            correlated_vars <- names(trainSet)[findCorrelation(cor(trainSet[, -which(names(trainSet) == "sensory")])) > 0.8]
+            trainSet <- trainSet[, !names(trainSet) %in% correlated_vars]
+            lm_model <- lm(sensory ~ ., data = trainSet)  # Fit linear model with updated predictors
+          }
 
-                # Calculate accuracy of the predictions
-                Accuracy <- Accuracy(testSet$sensory, predictedValues)
+          selected_vars <- names(step(lm_model, direction = "both", trace = 0))[-1]  # Perform stepwise selection
 
-                # Check if this model has the best RMSE so far
-                if (Accuracy > bestAcc) {
-                        bestAcc <- Accuracy
-                        bestModel <- modelFit
-                        bestHyperParams <- list("k"=modelFit$bestTune[1,1])
-                        # Calculate the confusion matrix
-                        conf_matrix <- confusionMatrix(predictedValues, testSet$sensory)
-                        #plot the confusion matrix
-                        confusion_matrix <- confusion_matrix(conf_matrix, platformName, outDir, "KNN" )
-                        statsClass <- statsClassification( predictedValues, testSet$sensory )
-                }
+          # Train the Linear Model with selected variables
+          modelFit <- lm(sensory ~ ., data = trainSet[, c(selected_vars, "sensory")])
 
-                performanceResults[[i]] <- list("Accuracy" = Accuracy, "bestHyperParams" = bestHyperParams)
+          # Using testSet, the linear model predicts class labels
+          predictedValues <- predict(modelFit, newdata = testSet[, selected_vars])
+
+          # Calculate accuracy of the predictions
+          Accuracy <- Accuracy(testSet$sensory, predictedValues)
+
+          # Check if this model has the best RMSE so far
+          if (Accuracy > bestAcc) {
+            bestAcc <- Accuracy
+            bestModel <- modelFit
+            # Calculate the confusion matrix
+            conf_matrix <- confusionMatrix(predictedValues, testSet$sensory)
+            #plot the confusion matrix
+            confusion_matrix <- confusion_matrix(conf_matrix, platformName, outDir, "SLC" )
+            statsClass <- statsClassification( predictedValues, testSet$sensory )
+          }
+
+          performanceResults[[i]] <- list("Accuracy" = Accuracy)
 
         }
 
@@ -154,15 +157,15 @@ knnClass.run <- function(classificationParameterList){
         name_path <- file.path(extracted_path, folder_models)
         cat("New path :", name_path, "\n")
         if ( substr( name_path, nchar( name_path ), nchar( name_path ) ) == "/" ) {
-                name_path <- paste0( name_path, "/class" )
+          name_path <- paste0( name_path, "/class" )
         } else {
-                name_path <- paste0( name_path, "/class" )
+          name_path <- paste0( name_path, "/class" )
         }
 
         #Check if the "class" directory exists, if not, create
         if ( dir.exists( name_path ) == FALSE ) {
-                cat( "\n\nNOTE : The dir 'class' does not exist so it was newly created.\n" )
-                dir.create( name_path, showWarnings = FALSE )
+          cat( "\n\nNOTE : The dir 'class' does not exist so it was newly created.\n" )
+          dir.create( name_path, showWarnings = FALSE )
         }
         #Save the best model and its hyperparameters
         name_platform <- classificationParameterList$platform
@@ -177,8 +180,8 @@ knnClass.run <- function(classificationParameterList){
         write.table( bestAcc, file = name_path_txt, row.names = FALSE, col.names = FALSE )
 
         #Add statistics values into result.csv
-        bestHyperParams <- data.frame( bestK = bestHyperParams$k ) # Make a dataframe for 'k value'
-        statsClass <- cbind( statsClass, bestHyperParams ) # Then, combine 2 dataframes
+        cat("statsClass \n")
+        print(statsClass)
         saveResultClass(statsClass, classificationParameterList$method, classificationParameterList$outputDir, platformName)
 
         return(createPerformanceStatisticsClass(performanceResults, classificationParameterList))

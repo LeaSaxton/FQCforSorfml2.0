@@ -69,13 +69,6 @@ XGBoost.run <- function(regressionParameterList){
         #defining a watchlist
         watchlist = list(train=xgb_train, test=xgb_test)
 
-        # Modified by Shintaro Kinoshita : List of models for RDS
-        #all_models <- list()
-
-        # Modified by Lea Saxton : Define variants for the best models
-        #bestRMSE  <- Inf
-        #bestModel <- NULL
-
         #fit XGBoost model and display training and testing data at each iteration
         model = xgb.train(data = xgb_train, max.depth = 3, watchlist=watchlist, nrounds = 100)
 

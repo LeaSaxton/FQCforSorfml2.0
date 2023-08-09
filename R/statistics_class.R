@@ -26,7 +26,7 @@ generateStatisticsClass <- function(platformPerformanceResults, outputDir, creat
   mlmShortNameList <- unlist(lapply(platformPerformanceResults[[1]]$mlmPerformanceResults, function(x) x$method))
   pretreatmentList <- unlist(lapply(platformPerformanceResults[[1]]$mlmPerformanceResults, function(x) x$pretreatment))
   mlmLongDescList <- unlist(mlmLongDesc[mlmShortNameList])
-  methodNameWithDataPretreatment <- paste0(mlmLongDescList , "(", pretreatmentList , ")")
+  methodNameWithDataPretreatment <- paste0(mlmShortNameList, "(", pretreatmentList, ")")
   platformList <- unlist(lapply(platformPerformanceResults, function(x) x$platform))
   Accdf <- data.frame(mlmShortNameList)
 
@@ -45,20 +45,27 @@ generateStatisticsClass <- function(platformPerformanceResults, outputDir, creat
   print( "Accdf_01:" ); print( Accdf )
   print( "methodNameWithDataPretreatment:" );
   print( methodNameWithDataPretreatment )
+  if (any(duplicated(methodNameWithDataPretreatment))) {
+          print("Duplicate method names found, adjusting...")
+          methodNameWithDataPretreatment <- make.unique(methodNameWithDataPretreatment)
+  }
+  # Remove missing values from methodNameWithDataPretreatment
+  methodNameWithDataPretreatment <- methodNameWithDataPretreatment[!is.na(methodNameWithDataPretreatment)]
   rownames(Accdf) <- methodNameWithDataPretreatment
   colnames(Accdf) <- c("methodName",platformList)
+  print(Accdf)
   Accdf$ML_Means <- round(rowMeans(Accdf[2:ncol(Accdf)], na.rm=TRUE), 4)
   Accdf$ML_Means <- round(rowMeans(Accdf[2:ncol(Accdf)], na.rm = TRUE), 4)
   Accdf <- rbind(Accdf, c(NA, round(colMeans(Accdf[2:ncol(Accdf)], na.rm = TRUE), 4)))
   rownames(Accdf)[nrow(Accdf)] <- "Platform_Means"
-
   # Calculate Accdf_ForHeatMap with unique ML methods and maximum Accuracy for each
   Accdf_ForHeatMap <- as.data.frame(Accdf %>% group_by(methodName) %>% filter(ML_Means == max(ML_Means)))
   Accdf <- Accdf[, -1]
   Accdf <- format(Accdf, nsmall = 4)
   Accdf[nrow(Accdf), ncol(Accdf)] <- ""
   Accdf_ForHeatMap <- head(Accdf_ForHeatMap[, -ncol(Accdf_ForHeatMap), drop = FALSE], -1)
-  rownames(Accdf_ForHeatMap) <- mlmLongDescList[Accdf_ForHeatMap$methodName]
+  print(Accdf_ForHeatMap)
+  rownames(Accdf_ForHeatMap) <- Accdf_ForHeatMap$methodName
   Accdf_ForHeatMap <- Accdf_ForHeatMap[, -1]
 
   if(createStatisticsFile == TRUE){

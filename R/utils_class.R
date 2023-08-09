@@ -57,13 +57,13 @@ evalMetrics <- function(true, predicted) {
 getPretreatmentVectorClass <- function(pretreatment){
   # Pretreatment parameter is changed to vector as it is required by
   # caret::preProcess method.
-  if (pretreatment == "normalise"){
-    return(c("norma"))
+  if (pretreatment == "norm"){
+    return("normalise")
   }
-  if(pretreatment == "auto-scale"){
+  if(pretreatment == "auto"){
     return(c("center", "scale"))
   }
-  if(pretreatment == "range-scale"){
+  if(pretreatment == "rscale"){
     return(c("range"))
   }
   if(pretreatment == "meam"){
@@ -215,9 +215,8 @@ readConfigFileClass<-function(configFile){
 #' \dontrun{readConfigFileClass(configFile)}
 #'
 
-# Modified by Shintaro Kinoshita : add "metaFileName" and "bacterialName" arguments to "readData" function
 readDatasetClass<-function(dataFileName, metaFileName, metaDataName){
-  cat("readDataSet function is starting \n")
+  cat("readDataSetClass function is starting \n")
   fileExtension <- tolower(file_ext(dataFileName))
   # According to file extension different method is used to read data
   if(fileExtension == "xlsx")

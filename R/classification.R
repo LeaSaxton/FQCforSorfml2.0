@@ -111,24 +111,20 @@ run.classification <- function(classificationParameterList){
   cat('run.classification is starting \n')
   cat(paste0("method name : ", method, "\n"))
   result<-NULL
-  if(method == "SVR-Radial"){
-    cat('svr.run is starting \n')
-    regressionParameterList$kernel <- "radial"
-    result<-svr.run(regressionParameterList)
-    regressionParameterList<-within(regressionParameterList, rm(kernel))
+  if(method == "SVC"){
+    cat('SVC.run is starting \n')
+    result<-SVC.run(classificationParameterList)
   }
-  if(method == "SVR-Polynomial"){
-    cat('svr.run is starting \n')
-    regressionParameterList$kernel <- "polynomial"
-    result<-svr.run(regressionParameterList)
-    regressionParameterList<-within(regressionParameterList, rm(kernel))
+  if(method == "PLSDA"){
+    cat('PLSDA.run is starting \n')
+    result<-PLSDA.run(classificationParameterList)
     
   }
   if(method == "KNN"){
     cat('knnClass.run is starting \n')
     result<-knnClass.run(classificationParameterList)
   }
-  if(method == "RF"){
+  if(method == "RFC"){
     cat('randomForestClass.run is starting \n')
     result<-randomForestClass.run(classificationParameterList)
   }
@@ -136,9 +132,9 @@ run.classification <- function(classificationParameterList){
     cat(paste0("LDA.run is starting for ", method ,"\n"))
     result<-LDA.run(classificationParameterList)
   }
-  if(method == "RT"){
-    cat('regressionTree.run is starting \n')
-    result<-regressionTree.run(regressionParameterList)
+  if(method == "SLC"){
+    cat('SLC.run is starting \n')
+    result<-SLC.run(classificationParameterList)
   }
   if(method == "NN"){
     cat('neuralNetwork.run is starting \n')
@@ -166,8 +162,8 @@ run.classification <- function(classificationParameterList){
   
   # XGBoost
   if(method == "XGBoost" ){
-    cat('XGBoost.run is starting \n')
-    result<-XGBoost.run(regressionParameterList)
+    cat('XGBoostClass.run is starting \n')
+    result<-XGBoostClass.run(classificationParameterList)
   }
   
   return(result)

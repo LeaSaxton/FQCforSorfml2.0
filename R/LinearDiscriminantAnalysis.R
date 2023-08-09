@@ -1,4 +1,24 @@
-
+#' Main function to calculate performance of Linear Discriminant Analysis model for classification
+#' @description After pretreatment on dataset this function calculates performance
+#' of PLSDA model through iterations and returns performance metrics.
+#' In each iteration different partitioning is done on dataset to create
+#' training and validation datasets.
+#' @author Lea saxton \email{lea.saxton.831@@cranfield.ac.uk}
+#' @param classificationParameterList  a list which contains
+#' number_of_iterations: number of iterations to calculate performance
+#' pretreatment: data pretreatment method (auto-scale, mean-center or range-scale
+#' is supported)
+#' percentageForTrainingSet: percentage of samples in training dataset
+#' dataSet: dataFrame which is read from data file and subjected to the model.
+#' @return a list containing performance results
+#' AccList: a list which contains RMSE of each iteration
+#' cumulativeAccuracyList: a list which contains cumulative RMSE mean in
+#' each iteration
+#' Accuracy: mean accuracy of all iterations
+#' @import caret
+#'
+#' @examples
+#' \dontrun{LDA.run(classificationParameterList)}
 LDA.run <- function(classificationParameterList){
           cat('LDA.run \n')
           dataSet_removed <- classificationParameterList$dataSet
@@ -38,13 +58,16 @@ LDA.run <- function(classificationParameterList){
           } else if (classificationParameterList$pretreatment == "pareto"){
             dataSet_removed<-apply(dataSet_removed, 2, function(y) ( (y -mean(y)) / ( sqrt(sd(y)) ) ) )
             dataSet <- cbind(dataSet_removed, sensory = dataSet_sensory)
+          }else if (classificationParameterList$pretreatment == "center") {
+            dataSet_removed <- apply(dataSet_removed, 2, function(y) (y - mean(y)))
+            dataSet <- cbind(dataSet_removed, sensory = dataSet_sensory)
           }else if (classificationParameterList$pretreatment == "vast") {
             dataSet_removed<-apply(dataSet_removed, 2, function(y) ( ( (y- mean(y))*mean(y)) / ((sd(y))^2) ) )
             dataSet <- cbind(dataSet_removed, sensory = dataSet_sensory)
           }else if (classificationParameterList$pretreatment == "level"){
             dataSet_removed<-apply(dataSet_removed, 2, function(y) ( (y -mean(y)) / (mean(y)) ) )
             dataSet <- cbind(dataSet_removed, sensory = dataSet_sensory)
-          } else if (classificationParameterList$pretreatment == "normalise"){
+          } else if (classificationParameterList$pretreatment == "norm"){
             dataSet_removed<-apply(dataSet_removed, 2, function(y) ((y - min(y))/ (max(y)-min(y))))
             dataSet <- cbind(dataSet_removed, sensory = dataSet_sensory)
           }else {
@@ -97,7 +120,7 @@ LDA.run <- function(classificationParameterList){
             # Calculate accuracy of the predictions
             Accuracy <- Accuracy(testSet$sensory, predictedValues)
             
-            # Check if this model has the best RMSE so far
+            # Check if this model has the best Accuracy so far
             if (Accuracy > bestAcc) {
               bestAcc <- Accuracy
               bestModel <- modelFit
