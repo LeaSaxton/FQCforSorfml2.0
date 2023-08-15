@@ -170,6 +170,7 @@ confusion_matrix <- function(conf_matrix, platform_name, outDir, method){
         conf_matrix_plot <- ggplot(data = as.data.frame(conf_matrix$table),
                                    aes(x = Reference, y = Prediction, fill = Freq)) +
                 geom_tile() +
+                geom_text(aes(label = Freq), color = "black", size = 3, vjust = 0.5) +
                 scale_fill_gradient(low = "yellow", high = "orange") +
                 theme_minimal() +
                 labs(title = paste0("Confusion Matrix for ", platform_name," ", method ),

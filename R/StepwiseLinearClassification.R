@@ -110,22 +110,23 @@ SLC.run <- function(classificationParameterList){
             testSet <- testSet[, -which(colnames(testSet) == "sensory")[1]]
           }
 
+
           # Perform Stepwise Linear Classification
           lm_model <- lm(sensory ~ ., data = trainSet)  # Fit initial linear model with all predictors
+          # Only proceed if the model has non-infinite AIC
+          if (!is.infinite(AIC(lm_model))) {
+                  if (any(findCorrelation(cor(trainSet[, -which(names(trainSet) == "sensory")])) > 0.8)) {
+                          correlated_vars <- names(trainSet)[findCorrelation(cor(trainSet[, -which(names(trainSet) == "sensory")])) > 0.8]
+                          trainSet <- trainSet[, !names(trainSet) %in% correlated_vars]
+                          lm_model <- lm(sensory ~ ., data = trainSet)
+                  }
 
-          # Check for multicollinearity and remove highly correlated predictors
-          if (any(findCorrelation(cor(trainSet[, -which(names(trainSet) == "sensory")])) > 0.8)) {
-            cat("Warning: Multicollinearity detected. Removing highly correlated predictors.\n")
-            correlated_vars <- names(trainSet)[findCorrelation(cor(trainSet[, -which(names(trainSet) == "sensory")])) > 0.8]
-            trainSet <- trainSet[, !names(trainSet) %in% correlated_vars]
-            lm_model <- lm(sensory ~ ., data = trainSet)  # Fit linear model with updated predictors
-          }
-
-          selected_vars <- names(step(lm_model, direction = "both", trace = 0))[-1]  # Perform stepwise selection
+                  selected_vars <- names(step(lm_model, direction = "both", trace = 0))[-1]
+                  modelFit <- lm(sensory ~ ., data = trainSet[, c(selected_vars, "sensory")])
 
           # Train the Linear Model with selected variables
           modelFit <- lm(sensory ~ ., data = trainSet[, c(selected_vars, "sensory")])
-
+         cat("hello \n")
           # Using testSet, the linear model predicts class labels
           predictedValues <- predict(modelFit, newdata = testSet[, selected_vars])
 
@@ -145,7 +146,11 @@ SLC.run <- function(classificationParameterList){
 
           performanceResults[[i]] <- list("Accuracy" = Accuracy)
 
+        } else {
+                cat("Warning: Model with infinite AIC detected. Skipping iteration ", i, "\n")
+                performanceResults[[i]] <- NA
         }
+}
 
         # Make "class" dir to save RDS files
         name_path <- classificationParameterList$outputDir

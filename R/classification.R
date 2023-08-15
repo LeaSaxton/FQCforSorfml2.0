@@ -30,7 +30,7 @@ run.analysis.class <- function(configParams){
     
     # Extract the first part of each element
     methods <- sapply(mlmList, function(x) strsplit(x, ":")[[1]][1])
-    print(methods)
+    
     for (j in 1:length(methods)){
     if(configParams$createPCAPlots == TRUE)
       generatePCAPlotsClass(dataSet, configParams$outputDirectory, platformList[i],methods[j])
@@ -118,11 +118,14 @@ run.classification <- function(classificationParameterList){
   if(method == "PLSDA"){
     cat('PLSDA.run is starting \n')
     result<-PLSDA.run(classificationParameterList)
-    
   }
-  if(method == "KNN"){
-    cat('knnClass.run is starting \n')
-    result<-knnClass.run(classificationParameterList)
+  if(method == "NN"){
+    cat('NeuralNetworkClass.run is starting \n')
+    result<-NeuralNetworkClass.run(classificationParameterList)
+  }
+  if(method == "RR"){
+    cat('RidgeRegression.run is starting \n')
+    result<-RidgeRegression.run(classificationParameterList)
   }
   if(method == "RFC"){
     cat('randomForestClass.run is starting \n')
@@ -136,9 +139,9 @@ run.classification <- function(classificationParameterList){
     cat('SLC.run is starting \n')
     result<-SLC.run(classificationParameterList)
   }
-  if(method == "NN"){
-    cat('neuralNetwork.run is starting \n')
-    result<-neuralNetwork.run(regressionParameterList)
+  if(method == "KNN"){
+    cat('knnClass.run is starting \n')
+    result<-knnClass.run(classificationParameterList)
   }
   
   # Linear regression models
