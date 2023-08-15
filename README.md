@@ -1,7 +1,7 @@
 # Summary
 
 
-This is modified version of the [FoodQualityController R package](https://github.com/ozlemkaradeniz/FoodQualityController) which is optimised for the back-end side of sorfML 2.0. FQC is a flexible and user-friendly R package that is used to identify, validate, and optimise the most suitable machine learning platform for the given analytical platform. 14 machine learning models are created in the package to predict microbial quality in food products.
+This is modified version of the [FoodQualityController R package](https://github.com/LeaSaxton/FQCforSorfml2.0.git) which is optimised for the back-end side of sorfML 2.0. FQC is a flexible and user-friendly R package that is used to identify, validate, and optimise the most suitable machine learning platform for the given analytical platform. 14 machine learning models are created in the package to predict microbial quality in food products and 7 models are available to predict sensory scores.
 
 # Table of Contents
 
@@ -56,17 +56,17 @@ All dependencies should be installed together with the FoodQualityController pac
 
 ## Install FoodQualityController from source
 
-You can download the latest source from the [FQCforSorfml GitHub repository page](https://github.com/shin-kinos/FQCforSorfml).
+You can download the latest source from the [FQCforSorfml GitHub repository page](https://github.com/LeaSaxton/FQCforSorfml2.0.git).
 
 An example installation of FQC onto your environment using `git` command.
 
 Type the command below in your terminal:
 
 ```
-% git clone https://github.com/shin-kinos/FQCforSorfml.git
+% git clone https://github.com/LeaSaxton/FQCforSorfml2.0.git
 ```
 
-Then, go to R consosle, and install the source package:
+Then, go to R console, and install the source package:
 
 ```{r}
 > library(utils)
@@ -86,7 +86,8 @@ Once the package is installed, to start using FoodQualityController simply load 
 ## Reading application parameters from configuration file
 
 FoodQualityController can read configuration file in json format. 
-assess.quality which is the main function of FoodQualityController takes name of the configuration file as parameter.
+assess.quality which is the main function of FoodQualityController for regression takes name of the configuration file as parameter.
+assess.quality.class which is the main function of FoodQualityController for classification takes name of the configuration file as parameter.
 Configuration file contains user-defined parameters which are required by the application.
 
 Example of a input files is as following:
@@ -96,25 +97,29 @@ Example of a input files is as following:
 
 ## Reading data from input files
 
-Input datafiles from different analytical platforms contain microbial data on which machine learning models run.
+Input datafiles from different analytical platforms contain microbial data or sensory scores on which machine learning models run.
 Name of the datafiles with absolute directory path should be provided with dataFileName tag under
 platformList tag in the configuration file, for more details see in 'Input configuration file format' section.
 
 ## How to run FoodQualityController
 
-The main and only function that is exported to the user in FoodQualityController package is assess.quality.
+The mains functions that are exported to the user in FoodQualityController package are assess.quality fore regression and assess.quality.class for classification.
 
 It is called as following with configuration file name as method parameter.
 
 ```{r}
-> assess.quality("/Users/shintarokinoshita/Cranfield/FoodQualityController/input/config.json")
+> assess.quality("/Users/lea/Cranfield/FoodQualityController/input/config.json")
+```
+
+```{r}
+> assess.quality.class("/Users/lea/Cranfield/FoodQualityController/input/config.json")
 ```
 
 ## Creating output files
 
 Output directory is provided in outputDirectory section of configuration file by the user. If it is not provided, the output directory becomes the current working directory. 
 
-The general structure of the output directory and files are below:
+The general structure of the output directory for regression and files are below:
 
  <img src="images/output_dir_structure.png" alt="example output dir" width="600"/>
 
@@ -128,6 +133,18 @@ The general structure of the output directory and files are below:
 -    `<PlatformName>_<BacterialName>_<MLmodelName>.rda` : RDA data containing the model information which aqcuired the lowest RMSE throughout the iterations.
 -    `<PlatformName>_<BacterialName>_<MLmodelName>.txt` : Text data containing the lowest RMSE in the ML model.
 
+The general structure of the output directory for classification and files are below:
+
+-   `rankAccuracy.csv` : List of ML models which are sorted based on the Accuracies. ✅Note that the format of this data are optimised for LaTeX document preparation.
+-   `<PlatformName>_PCA.pdf` : PCA plot of analytical data.
+-   `<PlatformName>_Accuracy_Means.pdf` : Line plot of the RMSE scores in each iteration between the ML models.
+-   `<PlatformName>_<MethodName>_ConfMatrix.pdf` : Confusion matrix for each ML method/analytical platform combination.
+-   `Heatmap_ML_methods.pdf` : Heatmap showing the best analytical platform/ ML method based on their accuracy.
+-    `result.csv` : CSV data recording results of the evaluation Statistics in each ML model.
+-    `Accuracy_Statistics.csv` : CSV data recording Accuracies in each model.
+-    `<PlatformName>_<MLmodelName>.rda` : RDA data containing the model information which aqcuired the highest Accuracy throughout the iterations.
+-    `<PlatformName>_<MLmodelName>.txt` : Text data containing the highest accuracy in the ML model.
+
 # Accessing help
 
 To access help pages for any of the functions or built-in data provided by FoodQualityController, prefix the name of the function or data set with a question mark, e.g. to get additional information on the `assess.quality` function, type the following in R:
@@ -135,4 +152,4 @@ To access help pages for any of the functions or built-in data provided by FoodQ
 ```{r}
 ?assess.quality
 ```
-**For the moment, the PLS, NN and RT (for the latest only for "no-pretreatment" and "mean-center" scaling) machine learning algorithms are not working**
+**For the moment, the PLS and NN machine learning algorithms are not working**
