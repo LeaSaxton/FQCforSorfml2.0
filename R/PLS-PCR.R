@@ -26,8 +26,9 @@
 #' @examples
 #' \dontrun{pls.pcr.run(regressionParameterList)}
 
-pls.pcr.run<- function(regressionParameterList){
-        cat('pls.pcr.run \n')
+pls.pcr.run <- function(regressionParameterList){
+        cat("pls.pcr.run \n")
+
         bacterialName <- regressionParameterList$bacterialName
         dataSet_removed <- regressionParameterList$dataSet
         platformName <- regressionParameterList$platform

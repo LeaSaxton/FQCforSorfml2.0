@@ -12,10 +12,11 @@
 run.analysis <- function(configParams){
         cat("run.analysis is starting \n")
         fileList <- configParams$platformList$dataFileName
-        metaList  <- configParams$platformList$metaFileName
+        metaList <- configParams$platformList$metaFileName
         bacterialNameList <- configParams$platformList$bacterialName
         platformList <- configParams$platformList$platformName
         mlmList <- configParams$machineLearningModels
+        convertLog <- configParams$convertLog
 
         cat("########################\n#### START ANALYSIS ####\n########################\n\n")
 
@@ -26,7 +27,10 @@ run.analysis <- function(configParams){
         for(i in 1:length(platformList)) {
                 # Modified by Shintaro Kinoshita : add metaList[i] and bacterialNameList[i]
                 # arguments to readDataset function
-                dataSet = readDataset(fileList[i], metaList[i], bacterialNameList[i])
+                # Modified by Shintaro Kinoshita : add convert log argument
+                dataSet <- readDataset(fileList[i], metaList[i], bacterialNameList[i], convertLog)
+                cat( "dataSet = readDataset(fileList[i], metaList[i], bacterialNameList[i], convertLog)\n\n" )
+                str( dataSet )
                 bestRMSE <- 100000
                 bestRSquare <- 0
                 bestMLM <- ""
@@ -48,7 +52,7 @@ run.analysis <- function(configParams){
                         # elements of RegressionParameterList are set to default values if they are not supplied by the user.
                         # default values are defined in utils.R
                         # Modified by Shintaro Kinoshita : add bacterialNameList[i] argument
-                        regressionParameterList <- getRegressionParameters( mlm, dataSet, platformList[i], bacterialNameList[i])
+                        regressionParameterList <- getRegressionParameters(mlm, dataSet, platformList[i], bacterialNameList[i])
                         dataSet <- regressionParameterList$dataSet
 
                         # Modified by Shintaro Kinoshita : Add configParams$outputDirectory to regressionParameterList
