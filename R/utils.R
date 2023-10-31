@@ -128,7 +128,6 @@ getRegressionParameters <- function(mlm, dataSet, platform, bacterialName){
 #' @examples
 #' \dontrun{plotPrediction(model, testSet )}
 
-
 plotPrediction <- function(model, testSet) {
   predicted <- predict(model, testSet)
   RMSE <- RMSE(testSet$TVC, predicted)
@@ -257,10 +256,10 @@ readDataset<-function(dataFileName, metaFileName, bacterialName, convertLog){
   }
 
   # Check if metadata should be log converted
-  if ( convertLog == TRUE ) {
+  if (convertLog == TRUE) {
     rawMetaData <- log10(rawMetaData)
-    cat("NOTE: The metadata was log-converted.\n")
-    print( rawMetaData )
+    cat("\nNOTE: The metadata was log-converted.\n")
+    #str( rawMetaData )
   }
 
   # Remove the last letter from row names in dataSet
@@ -296,7 +295,7 @@ readDataset<-function(dataFileName, metaFileName, bacterialName, convertLog){
       TVC <- dataSet[,bacterialName]
       dataSet <- dataSet[, colnames(dataSet) %in% colnames(features)]
       dataSet <- cbind(dataSet,TVC)
-      cat("done")
+      cat("=> Done\n")
     }
   }
 
@@ -305,26 +304,25 @@ readDataset<-function(dataFileName, metaFileName, bacterialName, convertLog){
   dataSet <- predict(preProcValues, dataSet)
 
   # Modified by Shintaro Kinoshita : Check if the metadata contains the data named 'bacterialName'
-  cat( paste0( "\nbacterialName : ", bacterialName, "\n" ) )
-  if ( !any( names( rawMetaData ) == bacterialName ) ) {
-    cat( "WARNING : ", "The data column named '", bacterialName, "' was not found in the metadata." )
-    cat( "\nCheck the metadata content again.\n" )
-    cat( paste0( "'", names( rawMetaData )[ length( rawMetaData ) ], "' in the metadata are used instead. \n\n" ) )
-    bacterialName <- names( rawMetaData )[ length( rawMetaData ) ]
+  cat(paste0("\nbacterialName : ", bacterialName, "\n"))
+  if (!any(names(rawMetaData) == bacterialName)) {
+    cat("WARNING : ", "The data column named '", bacterialName, "' was not found in the metadata.")
+    cat("\nCheck the metadata content again !\n")
+    cat(paste0( "'", names(rawMetaData)[length(rawMetaData)], "' in the metadata are used instead. \n\n"))
+    bacterialName <- names(rawMetaData)[length(rawMetaData)]
   }
 
   # Modified by Shintaro Kinoshita : Combine Dataset and TVC data if not found
   if( !length( grep( bacterialName, names( dataSet ) ) ) > 0 && !is.null( metaFileName ) ) {
-    metaData    <- data.frame( TVC = rawMetaData[ , bacterialName ] ) #; print( metaData )
-    min_nrow    <- min( nrow( dataSet ), nrow( metaData ) ) #; print( min_nrow )
-    dataSet     <- cbind( dataSet[ 1:min_nrow, ], TVC = metaData[ 1:min_nrow, ] )#; print( dataSet_mod )
+    metaData <- data.frame( TVC = rawMetaData[ , bacterialName ] ) #; print( metaData )
+    min_nrow <- min( nrow( dataSet ), nrow( metaData ) ) #; print( min_nrow )
+    dataSet  <- cbind( dataSet[ 1:min_nrow, ], TVC = metaData[ 1:min_nrow, ] )#; print( dataSet_mod )
     cat( paste0( "NOTE : NO '", bacterialName, "' data found in the original data. the first ", min_nrow, " rows in the metadata were combined to the original dataset." ) )
   }
   
 
-  #cat( "\n" )
-  cat( "The modified version of input data set is:\n" )
-  print(dataSet)
+  #cat("\nThe modified version of input data set is:\n" )
+  #print(dataSet)
   return(dataSet)
 }
 
@@ -332,27 +330,27 @@ createPerformanceStatistics <- function(performanceResults, regressionParameterL
   # RMSEList contains list of RMSE for each iteration
   RMSEList <- vector(mode="list", length = regressionParameterList$numberOfIterations)
   RSquareList <- vector(mode="list", length = regressionParameterList$numberOfIterations)
-  
+
   RMSEList <- unlist(lapply(performanceResults, function(x) x$RMSE))
   meanRMSE <- round(mean(RMSEList), 4)
   cumulativeMeanRMSEList <- cumsum(RMSEList) / seq_along(RMSEList)
   names(cumulativeMeanRMSEList) <- seq_along(RMSEList)
-  
+
   # RSquareList contains list of RSquare for each iteration
   RSquareList <- unlist(lapply(performanceResults, function(x) x$RSquare))
   meanRSquare <- round(mean(RSquareList), 4)
   cumulativeMeanRSquareList <- cumsum(RSquareList) / seq_along(RSquareList)
   names(cumulativeMeanRSquareList) <- seq_along(RSquareList)
-  
+
   bestHyperParamsList <- NULL
   if(!is.null(performanceResults[[1]]$bestHyperParams))
     bestHyperParamsList <- unlist(lapply(performanceResults, function(x) x$bestHyperParams))
-  
+
   regressionParameterList$methodWithDataScaling <- paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ")")
-  
+
   cat(paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ") mean RMSE: ", meanRMSE, '\n'))
   cat(paste0(regressionParameterList$method, "(", regressionParameterList$pretreatment,  ") mean RSquare: ", meanRSquare, '\n'))
-  
+
   # Result object is returned to run.regression function in regression.R, which contains whole performance information for the machine learning model
   result <- list("RMSEList"= RMSEList, "cumulativeMeanRMSEList" = cumulativeMeanRMSEList, "RMSE" = meanRMSE,
                  "RSquareList" = RSquareList, "cumulativeMeanRSquareList" = cumulativeMeanRSquareList, "RSquare" = meanRSquare,
@@ -372,15 +370,15 @@ createPerformanceStatistics <- function(performanceResults, regressionParameterL
 #' \dontrun{selectFeatures(dataSet)}
 
 selectFeatures <- function(dataSet, bacterialName) {
-  cat('selectFeatures function is starting \n')
+  cat("\nselectFeatures function is starting...\n")
   cat("Dependent variable: ", bacterialName, "\n")
-  
+
   # Check for missing data in the dependent variable
   if (any(is.na(dataSet[[bacterialName]]))) {
     cat("Missing data found in the dependent variable. Removing rows with missing values.")
     dataSet <- dataSet[complete.cases(dataSet), ]
   }
-  
+
   # Perform Boruta search
   # It uses Random Forest model behind,
   # search top-down and eliminates the irrelevant features step-by-step progressively.
@@ -388,14 +386,10 @@ selectFeatures <- function(dataSet, bacterialName) {
   # Perform Boruta search
   boruta_output <- Boruta(as.formula(paste(bacterialName, "~ .")), data = na.omit(dataSet), doTrace = 0)
   boruta_signif <- getSelectedAttributes(boruta_output, withTentative = TRUE)
-  
-  
-  cat("Selected attributes:\n")
+
+  cat("\nSelected attributes:\n")
   print(boruta_signif)
 
-  
-  cat("Hello, the selectFeatures function is finished \n")
-  
   return(dataSet)
 }
 
@@ -411,28 +405,28 @@ selectFeatures <- function(dataSet, bacterialName) {
 #' \dontrun{removeRedundantFeatures(selectFeatures)}
 
 removeRedundantFeatures<-function(dataSet){
+  cat("\nRemoving redundant features...\n")
   # Remove non-informative  features
   nzv <- caret::nearZeroVar(dataSet, saveMetrics= TRUE)
   dataSet <- dataSet[, !nzv$nzv]
-  
+
   # Calculate correlation matrix
   descrCor <- cor(dataSet)
-  
+
   # Finds higly correlated features
   highlyCorrelated <- findCorrelation(descrCor, cutoff=0.7)
   highlyCorCol <- colnames(dataSet)[highlyCorrelated]
-  
+
   # Removes highly correlated features
   dat <- dataSet[, -which(colnames(dataSet) %in% highlyCorCol)]
-  
+
   return(dat)
-  
 }
 
 #' statsRegression
 #' @description calculates basic statistics of a predicted model
 #' by comparing to the observed data.
-#' @author Shintaro Kinoshita \email{shintaro.kinoshita.584@@cranfield.ac.uk}
+#' @author Shintaro Kinoshita \email{shintaro.kinoshita@@cranfield.ac.uk}
 #' @param  predicted
 #' @param  observed
 #' @return data frame containing RMSE, Accuracy, Bf, Af and Worst
@@ -441,52 +435,36 @@ removeRedundantFeatures<-function(dataSet){
 #' \dontrun{statsRegression(predicted, ovserved)}
 
 statsRegression<-function(predicted, observed){
+  cat("\nCalculating regression statistics...\n")
+
   # Make varilables absolute
   predicted <- abs( predicted )
   observed  <- abs( observed )
 
   # Check content
-  cat( "\n############################################################\n" )
-  cat( "\npredicted:\n" )
-  cat( predicted )
-  cat( "\nobserved:\n" )
-  cat( observed )
-  cat( "\n" )
-  
-  #diff     <- abs(predicted-observed)
-  #Bf       <- 10^(mean(log10(predicted/observed)))
-  #Af       <- 10^mean(abs(log10(predicted/observed)))
-  #RMSE     <- sqrt(mean((predicted - observed)^2))
-  #Accuracy <- 100*(length(diff[which(diff<=1)])/length(predicted))
-  #Worst    <- max(diff)
+  #cat("\nPredicted val.: ")
+  #cat(predicted)
+  #cat("\nObserved  val.: ")
+  #cat(observed)
+  #cat("\n")
 
-  #cat( "\n\n" )
-  #cat( paste0( "Bf       = ", Bf,       "\n") )
-  #cat( paste0( "Af       = ", Af,       "\n") )
-  #cat( paste0( "RMSE     = ", RMSE,     "\n") )
-  #cat( paste0( "Accuracy = ", Accuracy, "\n") )
-  #cat( paste0( "Worst    = ", Worst,    "\n") )
-  #cat( "\n\n" )
-
-  # Accuracy is the number of samples which are in which |pred-obs|<1 over the total num of samples
+  # Accuracy is the number of samples which are in which |pred-obs|<0.1 over the total num of samples
   diff <- abs(predicted-observed)
   params <- data.frame(
     Bf = 10^(mean(log10(predicted/observed))),
     Af = 10^mean(abs(log10(predicted/observed))),
     RMSE = sqrt(mean((predicted - observed)^2)),
-    #Accuracy = 100*(length(diff[which(diff<=1)])/length(predicted)),  # ???
-    Accuracy = 100*(length(diff[which(diff<=0.1)])/length(predicted)), # ???
+    #Accuracy = 100*(length(diff[which(diff<=1)])/length(predicted)),
+    Accuracy = 100*(length(diff[which(diff<=0.1)])/length(predicted)),
     Worst = max(diff)
   )
-  #cat( "\n############################################################\n" )
 
   return(round(params, 3))
-  
 }
 
 #' saveResult
 #' @description generates 'result.csv' contains the best statistics values in each models
-#' @author Shintaro Kinoshita \email{shintaro.kinoshita.584@@cranfield.ac.uk}
+#' @author Shintaro Kinoshita \email{shintaro.kinoshita@@cranfield.ac.uk}
 #' @param  statsReg
 #' @param  outputDir
 #' @return null, generates 'result.csv' contains the best statistics values in each models
@@ -494,12 +472,13 @@ statsRegression<-function(predicted, observed){
 #' @examples
 #' \dontrun{saveResult(statsReg, outDir)}
 
-#Modified by Lea Saxton to add the bacterial type and platform name and ensure there are not duplicates in the file
+# Modified by Lea Saxton: to add the bacterial type and platform name and ensure there are not duplicates in the file
 saveResult <- function(statsReg, method, outputDir, platformName, bacterialName) {
-  cat("saveResult function is starting \n")
+  cat("\nSaving result...\n")
   if (is.null(statsReg$RMSE) || is.null(statsReg$Accuracy) || is.null(statsReg$Worst) || is.null(statsReg$Af) || is.null(statsReg$Bf) || is.null(statsReg$bestK)) {
     stop("One or more properties in statsReg are null.")
   }
+
   # make a data frame which is added to 'result.csv'
   df <- data.frame(
     method = method,
@@ -512,10 +491,11 @@ saveResult <- function(statsReg, method, outputDir, platformName, bacterialName)
     Bf = statsReg["Bf"],
     k = statsReg["bestK"]
   )
-  print(df)
+  #print(df)
+
   # Define filepath: Modify outputDir if required
   filepath <- file.path(outputDir, "result.csv")
-  
+
   # Create 'result.csv' or append to it
   if (!file.exists(filepath)) {
     cat("\nNOTE: 'result.csv' does not exist, so it's newly created.\n")
@@ -530,10 +510,10 @@ saveResult <- function(statsReg, method, outputDir, platformName, bacterialName)
   } else {
     filedata <- read.table(filepath, header = TRUE, sep = ",")
     filedata <- as.data.frame(filedata)
-    
+
     # Check if the same row already exists
     duplicate <- identical(filedata[nrow(filedata), ], df)
-    
+
     if (!duplicate) {
       newdata <- rbind(filedata, df)
       write.table(
