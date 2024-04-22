@@ -29,8 +29,7 @@ run.analysis <- function(configParams){
                 # arguments to readDataset function
                 # Modified by Shintaro Kinoshita : add convert log argument
                 dataSet <- readDataset(fileList[i], metaList[i], bacterialNameList[i], convertLog)
-                cat( "dataSet = readDataset(fileList[i], metaList[i], bacterialNameList[i], convertLog)\n\n" )
-                str( dataSet )
+                #str(dataSet)
                 bestRMSE <- 100000
                 bestRSquare <- 0
                 bestMLM <- ""
