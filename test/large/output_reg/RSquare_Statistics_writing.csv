@@ -1,0 +1,7 @@
+"","FTIR","FTIR.1","FTIR.2","ML_Means"
+"Random Forest(raw)","   0.9733","    0.9840","    0.9704","    0.9790"
+"Partial least squares Regression(raw)","   0.0480","    0.0456","    0.0389","    0.0414"
+"Ordinary Least Squares Regression(raw)","-601.1324","-1910.2997","-4168.0879","-4013.5445"
+"Stepwise Regression(raw)","-601.1324","-1910.2997","-4168.0879","-4013.5445"
+"Elastic Regression(raw)","  -0.0115","    0.0245","    0.0200","    0.0089"
+"Platform_Means","-240.2510"," -763.9091","-1667.0293",""

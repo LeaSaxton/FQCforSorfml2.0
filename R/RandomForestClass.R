@@ -56,7 +56,7 @@ randomForestClass.run <- function(classificationParameterList){
       }else if (classificationParameterList$pretreatment == "level"){
         dataSet_removed<-apply(dataSet_removed, 2, function(y) ( (y -mean(y)) / (mean(y)) ) )
         dataSet <- cbind(dataSet_removed, dataSet_sensory)
-      } else if (classificationParameterList$pretreatment == "normalise"){
+      } else if (classificationParameterList$pretreatment == "norm"){
         dataSet_removed<-apply(dataSet_removed, 2, function(y) ((y - min(y))/ (max(y)-min(y))))
         dataSet <- cbind(dataSet_removed, dataSet_sensory)
         }else {
@@ -99,7 +99,7 @@ randomForestClass.run <- function(classificationParameterList){
 
       # Starting with the default value of mtry, search for the optimal value (with respect to Out-of-Bag error estimate) of mtry for randomForest.
       tuningResult <- tuneRF(trainSet_x, trainSet_y, , ntreeTry=5000, stepFactor=1.1, improve=0.0000001,
-                             trace=TRUE, plot=TRUE, doBest=TRUE)
+                             trace=TRUE, plot=TRUE, doBest=TRUE)#5000 very high number for tuning, same concerns as with the regression counterpart
 
       # list of bestHyperParams is created with best hyperparameters
       bestHyperParams <- list("mtry"=tuningResult$mtry,"ntree"=tuningResult$ntree)

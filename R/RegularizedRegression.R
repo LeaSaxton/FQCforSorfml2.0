@@ -108,7 +108,7 @@ regularizedRegression.run <- function(regressionParameterList){
 
                 set.seed(123)
 
-                cvFit <- cv.glmnet(trainMx, trainTarget, alpha = alpha)
+                cvFit <- cv.glmnet(trainMx, trainTarget, alpha = alpha)#not working on missing values
 
                 # Fit the final model on the training data
                 modelFit <- glmnet(trainMx, trainTarget, alpha = alpha, lambda = cvFit$lambda.min)

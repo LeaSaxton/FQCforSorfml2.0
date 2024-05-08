@@ -1,0 +1,159 @@
+{
+  "name": "test",
+  "outputDirectory": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/output_reg",
+  "createStatisticsFile": true,
+  "createPerformancePlots": true,
+  "createPCAPlots": true,
+  "convertLog": false,
+  "platformList": [
+    {
+      "platformName": "FTIR",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_FTIR_NN.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_Bacterial counts_NN.csv",
+      "bacterialName": "PCA"
+    },
+    {
+      "platformName": "FTIR",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_FTIR_NN.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_Bacterial counts_NN.csv",
+      "bacterialName": "CFC"
+    },
+    {
+      "platformName": "FTIR",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_FTIR_NN.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_Bacterial counts_NN.csv",
+      "bacterialName": "STAA"
+    },
+    {
+      "platformName": "FTIR",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_FTIR_NN.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_Bacterial counts_NN.csv",
+      "bacterialName": "MRS"
+    },
+    {
+      "platformName": "VM",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_VM_NN.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_Bacterial counts_NN.csv",
+      "bacterialName": "PCA"
+    },
+    {
+      "platformName": "VM",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_VM_NN.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_Bacterial counts_NN.csv",
+      "bacterialName": "CFC"
+    },
+    {
+      "platformName": "VM",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_VM_NN.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_Bacterial counts_NN.csv",
+      "bacterialName": "STAA"
+    },
+    {
+      "platformName": "VM",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_VM_NN.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_Bacterial counts_NN.csv",
+      "bacterialName": "MRS"
+    }
+  ],
+  "machineLearningModels": [
+    {
+      "name": "SVR-Radial",
+      "shortName": "SVR-Radial",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "SVR-Polynomial",
+      "shortName": "SVR-Polynomial",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "KNN",
+      "shortName": "KNN",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "RFR",
+      "shortName": "RFR",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "PLS",
+      "shortName": "PLS",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "PCR",
+      "shortName": "PCR",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "RT",
+      "shortName": "RT",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "NN",
+      "shortName": "NN",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "OLS",
+      "shortName": "OLS",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "SR",
+      "shortName": "SR",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "RR",
+      "shortName": "RR",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "LR",
+      "shortName": "LR",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "ER",
+      "shortName": "ER",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "XGBoost",
+      "shortName": "XGBoost",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    }
+  ]
+}
+

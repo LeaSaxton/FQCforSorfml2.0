@@ -1,0 +1,60 @@
+{
+  "name": "test",
+  "outputDirectory": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/output_class",
+  "createStatisticsFile": true,
+  "createPerformancePlots": true,
+  "createPCAPlots": true,
+  "convertLog": false,
+  "platformList": [
+    {
+      "platformName": "Enose",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Enose/EnoseAllSamples.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Enose/SensoryAllSamples.csv",
+      "typeMetaData": "sensory"
+    }
+  ],
+  "machineLearningModels": [
+    {
+      "name": "SVC",
+      "shortName": "SVC",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "norm"
+    },
+    {
+      "name": "LDA",
+      "shortName": "LDA",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "norm"
+    },
+    {
+      "name": "PLSDA",
+      "shortName": "PLSDA",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "norm"
+    },
+    {
+      "name": "RFC",
+      "shortName": "RFC",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "norm"
+    },
+    {
+      "name": "KNN",
+      "shortName": "KNN",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "norm"
+    },
+    {
+      "name": "XGBoost",
+      "shortName": "XGBoost",
+      "numberOfIterations": 1,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "norm"
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "name": "test",
+  "outputDirectory": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/output_reg",
+  "createStatisticsFile": true,
+  "createPerformancePlots": true,
+  "createPCAPlots": true,
+  "convertLog": false,
+  "platformList": [
+    {
+      "platformName": "FTIR",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_FTIR_NN.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_Bacterial counts_NN.csv",
+      "bacterialName": "PCA"
+    },
+    {
+      "platformName": "FTIR",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_FTIR_NN.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_Bacterial counts_NN.csv",
+      "bacterialName": "CFC"
+    },
+    {
+      "platformName": "FTIR",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_FTIR_NN.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_Bacterial counts_NN.csv",
+      "bacterialName": "STAA"
+    },
+    {
+      "platformName": "FTIR",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_FTIR_NN.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/large/input/Eugenia/MAP_MincedPork_Bacterial counts_NN.csv",
+      "bacterialName": "MRS"
+    }
+  ],
+  "machineLearningModels": [
+    {
+      "name": "KNN",
+      "shortName": "KNN",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw",
+      "maxK":50
+    },
+    {
+      "name": "RFR",
+      "shortName": "RFR",
+      "numberOfIterations": 3,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "PLS",
+      "shortName": "PLS",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "OLS",
+      "shortName": "OLS",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "SR",
+      "shortName": "SR",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "ER",
+      "shortName": "ER",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    }
+  ]
+}
+

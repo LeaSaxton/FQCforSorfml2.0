@@ -1,0 +1,26 @@
+{
+  "name": "test",
+  "outputDirectory": "/home/kevin/Desktop/fqc/FoodQualityController/test/small/output_class",
+  "createStatisticsFile": true,
+  "createPerformancePlots": true,
+  "createPCAPlots": true,
+  "convertLog": false,
+  "platformList": [
+    {
+      "platformName": "HPLC",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/small/input/HPLC_data.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/small/input/Sensory_score.csv",
+      "typeMetaData": "sensory"
+    }
+  ],
+  "machineLearningModels": [
+    {
+      "name": "XGBoost",
+      "shortName": "XGBoost",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    }
+  ]
+}
+

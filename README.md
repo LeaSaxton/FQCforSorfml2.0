@@ -1,7 +1,7 @@
 # Summary
 
 
-This is modified version of the [FoodQualityController R package](https://github.com/LeaSaxton/FQCforSorfml2.0.git) which is optimised for the back-end side of sorfML 2.0. FQC is a flexible and user-friendly R package that is used to identify, validate, and optimise the most suitable machine learning platform for the given analytical platform. 14 machine learning models are created in the package to predict microbial quality in food products and 7 models are available to predict sensory scores.
+FoodQualityController is a flexible and user-friendly R package that is used to identify, validate, and optimize the most suitable machine learning platform for predicting microbial/sensorial quality of beef products using data from a wide range of analytical platforms.
 
 # Table of Contents
 
@@ -86,8 +86,8 @@ Once the package is installed, to start using FoodQualityController simply load 
 ## Reading application parameters from configuration file
 
 FoodQualityController can read configuration file in json format. 
-assess.quality which is the main function of FoodQualityController for regression takes name of the configuration file as parameter.
-assess.quality.class which is the main function of FoodQualityController for classification takes name of the configuration file as parameter.
+`assess.quality` is the main function of FoodQualityController for regression, and takes name of the configuration file as parameter.
+`assess.quality.class` which is the main function of FoodQualityController for classification, and takes name of the configuration file as parameter.
 Configuration file contains user-defined parameters which are required by the application.
 
 Example of a input files is as following:
@@ -97,9 +97,9 @@ Example of a input files is as following:
 
 ## Reading data from input files
 
-Input datafiles from different analytical platforms contain microbial data or sensory scores on which machine learning models run.
-Name of the datafiles with absolute directory path should be provided with dataFileName tag under
-platformList tag in the configuration file, for more details see in 'Input configuration file format' section.
+Input data files from different analytical platforms contain microbial data or sensory scores on which machine learning models run.
+Name of the datafiles with absolute directory path should be provided with `dataFileName` tag under
+`platformList` tag in the configuration file, for more details see in *Input configuration file format* section.
 
 ## How to run FoodQualityController
 

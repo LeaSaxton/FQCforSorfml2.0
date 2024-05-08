@@ -218,7 +218,7 @@ makeRankRmse <- function(configParams) {
   }
 
   # Get result data from 'result.csv'
-  dirpath_result <- paste0(dirpath, "result.csv")
+  dirpath_result <- paste0(dirpath, "result.csv")#repeat values get exported
   result_data <- read.table(dirpath_result, header = TRUE, sep = ",")
 
   # Sort ascending by RMSE values
