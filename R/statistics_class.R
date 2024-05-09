@@ -53,7 +53,6 @@ generateStatisticsClass <- function(platformPerformanceResults, outputDir, creat
   methodNameWithDataPretreatment <- methodNameWithDataPretreatment[!is.na(methodNameWithDataPretreatment)]
   rownames(Accdf) <- methodNameWithDataPretreatment
   colnames(Accdf) <- c("methodName",platformList)
-  print(Accdf)
   Accdf$ML_Means <- round(rowMeans(Accdf[2:ncol(Accdf)], na.rm=TRUE), 4)
   Accdf$ML_Means <- round(rowMeans(Accdf[2:ncol(Accdf)], na.rm = TRUE), 4)
   Accdf <- rbind(Accdf, c(NA, round(colMeans(Accdf[2:ncol(Accdf)], na.rm = TRUE), 4)))

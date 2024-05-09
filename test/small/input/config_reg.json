@@ -1,0 +1,65 @@
+{
+  "name": "test",
+  "outputDirectory": "/home/kevin/Desktop/fqc/FoodQualityController/test/small/output_reg",
+  "createStatisticsFile": true,
+  "createPerformancePlots": true,
+  "createPCAPlots": true,
+  "convertLog": false,
+  "platformList": [
+    {
+      "platformName": "HPLC",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/small/input/HPLC_data.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/small/input/Bacterial_Counts.csv",
+      "bacterialName": "TVC"
+    },
+    {
+      "platformName": "HPLC",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/small/input/HPLC_data.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/small/input/Bacterial_Counts.csv",
+      "bacterialName": "Pseudomonads"
+    },
+    {
+      "platformName": "Enose",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/small/input/Enose_data.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/small/input/Bacterial_Counts.csv",
+      "bacterialName": "TVC"
+    },
+    {
+      "platformName": "Enose",
+      "dataFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/small/input/Enose_data.csv",
+      "metaFileName": "/home/kevin/Desktop/fqc/FoodQualityController/test/small/input/Bacterial_Counts.csv",
+      "bacterialName": "Pseudomonads"
+    }
+  ],
+  "machineLearningModels": [
+    {
+      "name": "XGBoost",
+      "shortName": "XGBoost",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "Ordinary Least Squares Regression",
+      "shortName": "OLS",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "PCA Regression",
+      "shortName": "PCR",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    },
+    {
+      "name": "Partial least squares Regression",
+      "shortName": "PLS",
+      "numberOfIterations": 20,
+      "proportionOfTrainingSet": 0.7,
+      "pretreatment": "raw"
+    }
+  ]
+}
+

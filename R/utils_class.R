@@ -54,7 +54,7 @@ evalMetrics <- function(true, predicted) {
 #' @examples
 #' \dontrun{gePretreatmentVectorClass(pretreatment)}
 #'
-getPretreatmentVectorClass <- function(pretreatment){
+getPretreatmentVectorClass <- function(pretreatment){#DOES THIS FUNCTION DO MUCH AT ALL?
   # Pretreatment parameter is changed to vector as it is required by
   # caret::preProcess method.
   if (pretreatment == "norm"){
@@ -73,7 +73,7 @@ getPretreatmentVectorClass <- function(pretreatment){
     return(c("pareto"))
   }
   if(pretreatment =="vast-scaling"){
-    return(c("vast"))
+    return(c("vast"))#program will crash
   }
   if(pretreatment=="level-scaling"){
     return(c("level"))
@@ -166,6 +166,15 @@ readConfigFileClass<-function(configFile){
     config$outputDirectory = getwd()
   
   #config$outputDirectory = paste0(config$outputDirectory, "/FoodQualityController-", Sys.time())
+  # Modified by Kevin de Castro : check if the "models" folder exists, if not, create
+  name_path <- config$outputDirectory
+  folder_models <- "models"
+  # Changing the path
+  name_path <- file.path(name_path, folder_models)
+  if ( dir.exists( name_path ) == FALSE ) {
+          cat( "\n\nNOTE : The dir 'models' does not exist so it was newly created.\n" )
+          dir.create( name_path, showWarnings = FALSE )
+  }
   
   # machinelearningmodels are parsed and a vector of machineLearningModels is created in different format
   # each machine leaarning model in the vector becomes string in the format of

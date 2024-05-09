@@ -1,0 +1,8 @@
+"","Enose","ML_Means"
+"SVC(rscale)","0.5833","0.5833"
+"LDA(rscale)","0.5627","0.5627"
+"PLSDA(rscale)","0.3902","0.3902"
+"RFC(rscale)","0.7539","0.7539"
+"KNN(rscale)","0.7686","0.7686"
+"XGBoost(rscale)","0.2353","0.2353"
+"Platform_Means","0.5490",""

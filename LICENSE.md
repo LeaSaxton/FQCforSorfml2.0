@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) 2022 FoodQualityController authors
+Copyright (c) 2024 FoodQualityController authors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

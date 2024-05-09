@@ -2,7 +2,7 @@
 defCostRange<-2^seq(-15,3,2)
 defGammaRange<-2^seq(-5,15,2)
 defEpsilonRange<-c(seq(0,0.1,0.03), 0.2, seq(0.3,0.9,0.3))
-maxK <-20
+maxK <-20#in sorfml GUI it seems this gets exposed, but I dont see where it gets modified. very little validation
 defNtree<-1000
 defNumberOfIterations <- 80
 defPercentageForTrainingSet <- 0.75
@@ -80,7 +80,7 @@ gePretreatmentVector <- function(pretreatment){
   if(pretreatment == "range-scale"){
     return(c("range"))
   }
-  if(pretreatment == "meam"){
+  if(pretreatment == "meam"){#is meam on purpose? there is hardly any documentation so the user knows what he can use or not
     return(c("center"))
   }
 }
@@ -167,6 +167,16 @@ readConfigFile<-function(configFile){
   if(is.null(config$outputDirectory) || is.na(config$outputDirectory))
     config$outputDirectory = getwd()
   
+  # Modified by Kevin de Castro : check if the "models" folder exists, if not, create
+  name_path <- config$outputDirectory
+  folder_models <- "models"
+  # Changing the path
+  name_path <- file.path(name_path, folder_models)
+  if ( dir.exists( name_path ) == FALSE ) {
+          cat( "\n\nNOTE : The dir 'models' does not exist so it was newly created.\n" )
+          dir.create( name_path, showWarnings = FALSE )
+  }
+  
   #config$outputDirectory = paste0(config$outputDirectory, "/FoodQualityController-", Sys.time())
   
   # machinelearningmodels are parsed and a vector of machineLearningModels is created in different format
@@ -219,9 +229,9 @@ readConfigFile<-function(configFile){
 # Modified by Shintaro Kinoshita : add "metaFileName" and "bacterialName" arguments to "readData" function
 readDataset<-function(dataFileName, metaFileName, bacterialName){
   cat("readDataSet function is starting \n")
-  fileExtension <- tolower(file_ext(dataFileName))
+  fileExtension <- tolower(file_ext(dataFileName)) 
   # According to file extension different method is used to read data
-  if(fileExtension == "xlsx")
+  if(fileExtension == "xlsx")#file extension checking is not validation
     dataSet <- openxlsx::read.xlsx(dataFileName, sheet = 1, rowNames=TRUE, colNames = TRUE,)
   if(fileExtension == "csv")
     dataSet <- as.data.frame(read.csv(dataFileName, sep=",", header=TRUE, row.names=NULL))
@@ -284,7 +294,7 @@ readDataset<-function(dataFileName, metaFileName, bacterialName){
     cat("number Features > 200 \n")
     features <- selectFeatures(dataSet, bacterialName)
     features <- as.data.frame(features)
-    if ("TVC" %in% colnames(dataSet)) {
+    if ("TVC" %in% colnames(dataSet)) {#remnants of TVC, but now we allow other bacterial values
       cat("One column is TVC \n")
       dataSet <- dataSet[, c(features,"TVC")]
     } else {
@@ -391,7 +401,7 @@ selectFeatures <- function(dataSet, bacterialName) {
   print(boruta_signif)
 
   
-  cat("Hello, the selectFeatures function is finished \n")
+  cat("Hello, the selectFeatures function is finished \n")#hello?
   
   return(dataSet)
 }

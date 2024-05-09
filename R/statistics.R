@@ -81,7 +81,7 @@ generateStatistics <- function(platformPerformanceResults, outputDir, createStat
 
         cat("\n\nR-squared FOR ML METHODS\n\n")
         RSquaredf<- as.data.frame(RSquaredf)
-        rownames(RSquaredf) <- methodNameWithDataPretreatment
+        rownames(RSquaredf) <- methodNameWithDataPretreatment#these saving methods are not designed for testing different tweaks(pretreatment method) over the same model
         colnames(RSquaredf) <- platformList
         cat("issue is here \n")
         RSquaredf$ML_Means <- round(rowMeans(RSquaredf, na.rm=TRUE),4)

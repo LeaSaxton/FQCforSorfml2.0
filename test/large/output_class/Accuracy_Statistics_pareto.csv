@@ -1,0 +1,8 @@
+"","Enose","ML_Means"
+"SVC(pareto)","0.5833","0.5833"
+"LDA(pareto)","0.5627","0.5627"
+"PLSDA(pareto)","0.4245","0.4245"
+"RFC(pareto)","0.7500","0.7500"
+"KNN(pareto)","0.7922","0.7922"
+"XGBoost(pareto)","0.2353","0.2353"
+"Platform_Means","0.5580",""

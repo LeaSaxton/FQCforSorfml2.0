@@ -1,0 +1,7 @@
+"","FTIR_PCA","FTIR_CFC","FTIR_STAA","FTIR_MRS","ML_Means"
+"Random Forest(raw)"," 0.1066"," 0.1611"," 0.1242"," 0.1721"," 0.1410"
+"Partial least squares Regression(raw)"," 0.9803"," 0.9721"," 0.9788"," 0.9840"," 0.9788"
+"Ordinary Least Squares Regression(raw)","53.3124","18.9803","33.7455","35.4569","35.3738"
+"Stepwise Regression(raw)","53.3124","18.9803","33.7455","35.4569","35.3738"
+"Elastic Regression(raw)"," 0.9956"," 1.0019"," 0.9899"," 0.9930"," 0.9951"
+"Platform_Means","21.7415"," 8.0191","13.9168","14.6126",""

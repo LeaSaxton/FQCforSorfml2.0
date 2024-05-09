@@ -99,7 +99,7 @@ knn.run <- function(regressionParameterList){
 
                 # Check if there are two columns named "TVC" in trainSet
                 if (sum(colnames(trainSet) == "TVC") == 2) {
-                  cat("there are 2 columns 'TVC' in trainSet \n")
+                  cat("there are 2 columns 'TVC' in trainSet \n")#too many warnings like these that would mean nothing to user
                   # Remove one of the "TVC" columns
                   trainSet <- trainSet[, -which(colnames(trainSet) == "TVC")[1]]
                 }
@@ -114,6 +114,8 @@ knn.run <- function(regressionParameterList){
                 trControl <- trainControl(method = "cv", number = 5)
                 # model is trained with trainSet using 5 fold cross validation
                 # as tuneGrid parameter possible k values is supplied,  train function finds the optimum k-value.
+                print("maxK: ")
+                print(maxK)
                 modelFit <- caret::train(TVC ~ . , method='knn', data=trainSet,
                                          tuneGrid=expand.grid(k=1:maxK), trControl=trControl)
                 # list of bestHyperParams is created with best hyperparameters

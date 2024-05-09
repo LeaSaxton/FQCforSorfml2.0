@@ -75,7 +75,7 @@ randomForest.run <- function(regressionParameterList){
         # Modified by Shintaro Kinoshita : Define the statistics regression list
         statsReg <- NULL
 
-        for(i in 1:regressionParameterList$numberOfIterations) {
+        for(i in 1:regressionParameterList$numberOfIterations) {#this should only be run once, no cumulative values are exported, but I think it is running several times
                 # training set and test set are created
                 trainSet <- dataSet[trainIndexList[,i],]
                 trainSet_y<-trainSet[,names(trainSet)=="TVC"]
@@ -83,17 +83,20 @@ randomForest.run <- function(regressionParameterList){
                 testSet <- dataSet[-trainIndexList[,i],]
                 testSet_y<-testSet[,names(testSet)=="TVC"]
                 testSet_x<-testSet[,names(testSet)!="TVC"]
+                print("testing runnumber")
+                print(regressionParameterList$numberOfIterations)#it indeed runs 3 times, even though it is only exported once (no cumulative values)
 
                 # Starting with the default value of mtry, search for the optimal value (with respect to Out-of-Bag error estimate) of mtry for randomForest.
-                tuningResult <- tuneRF(trainSet_x, trainSet_y, , ntreeTry=5000, stepFactor=1.1, improve=0.0000001,
-                                       trace=TRUE, plot=TRUE, doBest=TRUE)
+                # is this really needed? also, it is choosing >1000 features as mtry
+                #tuningResult <- tuneRF(trainSet_x, trainSet_y, , ntreeTry=5000, stepFactor=1.1, improve=0.0000001,
+                #                       trace=TRUE, plot=TRUE, doBest=TRUE)
 
                 # list of bestHyperParams is created with best hyperparameters
-                bestHyperParams <- list("mtry"=tuningResult$mtry,"ntree"=tuningResult$ntree)
+                #bestHyperParams <- list("mtry"=tuningResult$mtry,"ntree"=tuningResult$ntree)
 
                 # RandomForest model is created with the best hyperparameters for the current iterations
                 modelFit <- randomForest( x = trainSet_x, y = trainSet_y, xtest = testSet_x, ytest = testSet_y,
-                                          ntree = bestHyperParams$ntree, mtry = bestHyperParams$mtry, keep.forest = TRUE)
+                                          ntree = 300, keep.forest = TRUE)
 
                 # Using testSet svm model predicts TVC values
                 predictedValues <- modelFit$test$predicted

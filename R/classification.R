@@ -88,6 +88,7 @@ run.analysis.class <- function(configParams){
   generateStatisticsClass(platformPerformanceResults, configParams$outputDirectory, configParams$createStatisticsFile)
   # Performance plots which shows RSquare and  RMSE means through number of iterations are created for each platform
   for (j in 1:length(methods)){
+    print(platformPerformanceResults)
   if(configParams$createPerformancePlots)
     generatePerformancePlotsClass(platformPerformanceResults, configParams$outputDirectory, methods[j] )
   }
@@ -119,14 +120,6 @@ run.classification <- function(classificationParameterList){
     cat('PLSDA.run is starting \n')
     result<-PLSDA.run(classificationParameterList)
   }
-  if(method == "NN"){
-    cat('NeuralNetworkClass.run is starting \n')
-    result<-NeuralNetworkClass.run(classificationParameterList)
-  }
-  if(method == "RR"){
-    cat('RidgeRegression.run is starting \n')
-    result<-RidgeRegression.run(classificationParameterList)
-  }
   if(method == "RFC"){
     cat('randomForestClass.run is starting \n')
     result<-randomForestClass.run(classificationParameterList)
@@ -134,35 +127,11 @@ run.classification <- function(classificationParameterList){
   if(method == "LDA"){
     cat(paste0("LDA.run is starting for ", method ,"\n"))
     result<-LDA.run(classificationParameterList)
-  }
-  if(method == "SLC"){
-    cat('SLC.run is starting \n')
-    result<-SLC.run(classificationParameterList)
-  }
+  }#test the ones I deleted
   if(method == "KNN"){
     cat('knnClass.run is starting \n')
     result<-knnClass.run(classificationParameterList)
-  }
-  
-  # Linear regression models
-  # Ordinary Least Squares Regression (OLS) or Stepwise Regression (SR)
-  if(method == "OLS" || method == "SR"){
-    cat('linearRegression.run is starting \n')
-    result<-linearRegression.run(regressionParameterList)
-    
-  }
-  # Regularized regression models() Ridge Regression, Lasso Regression
-  if(method == "RR" || method == "LR" ){
-    cat('regularizedRegression.run is starting \n')
-    result<-regularizedRegression.run(regressionParameterList)
-  }
-  
-  # Elastic Net Regression
-  if(method == "ER" ){
-    cat('elasticRegression.run is starting \n')
-    result<-elasticRegression.run(regressionParameterList)
-  }
-  
+  }  
   # XGBoost
   if(method == "XGBoost" ){
     cat('XGBoostClass.run is starting \n')

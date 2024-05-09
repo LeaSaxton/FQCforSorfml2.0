@@ -1,0 +1,6 @@
+"","HPLC_TVC","HPLC_Pseudomonads","Enose_TVC","Enose_Pseudomonads","ML_Means"
+"XGBoost(raw)","0.6459","0.8596","0.9577","0.6054","0.7672"
+"Ordinary Least Squares Regression(raw)","1.0451","2.2092","0.3532","1.3036","1.2278"
+"PCA Regression(raw)","1.0418","1.0498","0.8776","1.0035","0.9932"
+"Partial least squares Regression(raw)","0.6083","1.2040","0.3906","1.1427","0.8364"
+"Platform_Means","0.8353","1.3307","0.6448","1.0138",""
